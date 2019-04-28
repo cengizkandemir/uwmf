@@ -33,6 +33,7 @@ public:
     logger(log_level level)
         : level_(level)
     {
+        stream_ << "[" << log_level_as_str() << "] ";
     }
 
     ~logger()
@@ -58,4 +59,26 @@ public:
 private:
     log_level level_;
     std::ostringstream stream_;
+
+
+    std::string log_level_as_str() const
+    {
+        switch(level_) {
+        case log_level::VERBOSE:
+            return "VERBOSE";
+        case log_level::DEBUG:
+            return "DEBUG";
+        case log_level::INFO:
+            return "INFO";
+        case log_level::WARNING:
+            return "WARNING";
+        case log_level::ERROR:
+            return "ERROR";
+        default:
+            ASSERT(false, "invalid log_level_as_str case");
+            break;
+        }
+
+        return "";
+    }
 };
