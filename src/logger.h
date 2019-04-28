@@ -35,10 +35,9 @@ public:
 
     ~logger()
     {
-        // we do not need flushing here, ostringstream is not tied to any device
-        // and stderr is not buffered
-        stream_ << "\n";
+        stream_ << std::endl;
         std::fprintf(stderr, "%s", stream_.str().c_str());
+        std::fflush(stderr);
     }
 
     DELETE_COPY_AND_ASSIGN(logger);
