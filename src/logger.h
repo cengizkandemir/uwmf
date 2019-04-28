@@ -12,6 +12,7 @@
     else                                        \
         logger(level).stream()
 
+#define LOGV() LOG_IMPL(logger::log_level::VERBOSE)
 #define LOGD() LOG_IMPL(logger::log_level::DEBUG)
 #define LOGI() LOG_IMPL(logger::log_level::INFO)
 #define LOGW() LOG_IMPL(logger::log_level::WARNING)
@@ -22,7 +23,8 @@ class logger
 public:
     enum class log_level: int
     {
-        DEBUG = 0,
+        VERBOSE = 0,
+        DEBUG,
         INFO,
         WARNING,
         ERROR
