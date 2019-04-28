@@ -6,7 +6,7 @@
 #include "utils.h"
 
 #define LOG_IMPL(level)                         \
-    if(level > logger::filter()) {              \
+    if(level < logger::filter()) {              \
         ;                                       \
     }                                           \
     else                                        \
