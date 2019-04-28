@@ -9,4 +9,13 @@ set(SOURCES
 
 add_executable(uwmf ${SOURCES})
 
+target_compile_options(uwmf PRIVATE
+  -std=c++17
+  -Wall
+  -Wextra
+  -Werror
+  -Wshadow
+  -Wpedantic
+  -pedantic-errors)
+
 install(TARGETS uwmf RUNTIME DESTINATION bin)
