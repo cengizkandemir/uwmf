@@ -52,7 +52,7 @@ public:
 
     static log_level& filter()
     {
-        static log_level fltr = logger::log_level::INFO;
+        static log_level fltr = log_level::INFO;
         return fltr;
     }
     
