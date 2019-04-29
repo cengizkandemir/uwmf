@@ -10,7 +10,6 @@
 
 #include "logger.h"
 
-
 constexpr int DEFAULT_WEIGHT_FALL_OFF = 4;
 constexpr int DEFAULT_MINKOWSKI_EXPONENT = 1;
 
