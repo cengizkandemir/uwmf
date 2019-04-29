@@ -1,6 +1,10 @@
-#include <string>
+#include <cstdlib>
 #include <optional>
+#include <ostream>
+#include <sstream>
+#include <string>
 #include <utility>
+#include <vector>
 
 #include <unistd.h>
 
@@ -10,31 +14,92 @@
 constexpr int DEFAULT_WEIGHT_FALL_OFF = 4;
 constexpr int DEFAULT_MINKOWSKI_EXPONENT = 1;
 
-struct program_options
+class program_options
 {
+        friend std::ostream& operator<<(std::ostream& out,
+                const program_options& opts);
+public:
     program_options()
-        : k(DEFAULT_WEIGHT_FALL_OFF, true)
-        , p(DEFAULT_MINKOWSKI_EXPONENT, true)
-        , wsize(-1, false)
-        , input("", false)
-        , output("", false)
+        : k_(DEFAULT_WEIGHT_FALL_OFF, true)
+        , p_(DEFAULT_MINKOWSKI_EXPONENT, true)
+        , wsize_(-1, false)
+        , input_("", false)
+        , output_("")
     {
+    }
+
+    void k(int k)
+    {
+        k_.first = k;
+        k_.second = true;
+    }
+
+    void p(int p)
+    {
+        p_.first = p;
+        p_.second = true;
+    }
+
+    void wsize(int wsize)
+    {
+        wsize_.first = wsize;
+        wsize_.second = true;
+    }
+
+    void input(std::string input)
+    {
+        input_.first = input;
+        input_.second = true;
+    }
+
+    void output(std::string output)
+    {
+        output_ = output;
     }
 
     bool ok() const
     {
-        return k.second && p.second && wsize.second && input.second;
+        return k_.second && p_.second && wsize_.second && input_.second;
     }
 
-    std::pair<int, bool> k;
-    std::pair<int, bool> p;
-    std::pair<int, bool> wsize;
-    std::pair<std::string, bool> input;
-    std::pair<std::string, bool> output;
+private:
+    std::pair<int, bool> k_;
+    std::pair<int, bool> p_;
+    std::pair<int, bool> wsize_;
+    std::pair<std::string, bool> input_;
+    // optional
+    std::string output_;
 };
+
+std::ostream& operator<<(std::ostream& out, const program_options& opts)
+{
+    out << "\n";
+    out << "    k = " << opts.k_.first << "\n";
+    out << "    p = " << opts.p_.first << "\n";
+    out << "    w = " << opts.wsize_.first << "\n";
+    out << "    i = " << opts.input_.first << "\n";
+    out << "    o = " << opts.output_;
+
+    return out;
+}
 
 namespace
 {
+
+std::string help()
+{
+    std::stringstream ss;
+    ss << "options:\n"
+            << "    -k: weight fall-off (default: 4)\n"
+            << "    -p: Minkowski exponent (default: 1)\n"
+            << "    -w: filtering window size\n"
+            << "    -i: input png image\n"
+            << "    -o: optional output file\n"
+            << "        if omitted, input file name with \"_restored\" "
+                       "suffix will be used";
+
+    return ss.str();
+}
 
 // TODO: consider better alternative to std::stoi
 std::optional<program_options> parse_options(int argc, char** argv)
@@ -44,27 +109,26 @@ std::optional<program_options> parse_options(int argc, char** argv)
     program_options opts;
 
     int curr_opt;
-    while((curr_opt = getopt(argc, argv, ":k:p:w:i:o:")) != -1) {
+    while((curr_opt = getopt(argc, argv, ":k:p:w:i:o:h")) != -1) {
         switch(curr_opt) {
         case 'k':
-            opts.k.first = std::stoi(optarg);
-            opts.k.second = true;
+            opts.k(std::stoi(optarg));
             break;
         case 'p':
-            opts.p.first = std::stoi(optarg);
-            opts.p.second = true;
+            opts.p(std::stoi(optarg));
             break;
         case 'w':
-            opts.wsize.first = std::stoi(optarg);
-            opts.wsize.second = true;
+            opts.wsize(std::stoi(optarg));
             break;
         case 'i':
-            opts.input.first = std::string(optarg);
-            opts.input.second = true;
+            opts.input(std::string(optarg));
             break;
         case 'o':
-            opts.output.first = std::string(optarg);
-            opts.output.second = true;
+            opts.output(std::string(optarg));
+            break;
+        case 'h':
+            LOGI() << help();
+            std::exit(0);
             break;
         case ':':
             LOGE() << "missing value for opt -" << static_cast<char>(optopt);
@@ -90,16 +154,12 @@ int main(int argc, char** argv)
     std::optional<program_options> opts =  parse_options(argc, argv);
 
     if(!opts) {
-        LOGE() << "failed to parse command line arguments";
+        LOGE() << help();
         return -1;
     }
 
     LOGD() << "parameters in use:";
-    LOGD() << "k = " << opts.value().k.first;
-    LOGD() << "p = " << opts.value().p.first;
-    LOGD() << "w = " << opts.value().wsize.first;
-    LOGD() << "i = " << opts.value().input.first;
-    LOGD() << "o = " << opts.value().output.first;
+    LOGD() << opts.value();
 
     return 0;
 }
