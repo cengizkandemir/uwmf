@@ -144,7 +144,7 @@ std::optional<program_options> parse_options(int argc, char** argv)
     return opts.ok() ? std::optional(opts) : std::nullopt;
 }
 
-}
+} // anonymous
 
 int main(int argc, char** argv)
 {
