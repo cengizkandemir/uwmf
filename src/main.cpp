@@ -10,6 +10,9 @@
 
 #include "logger.h"
 
+namespace
+{
+
 constexpr int DEFAULT_WEIGHT_FALL_OFF = 4;
 constexpr int DEFAULT_MINKOWSKI_EXPONENT = 1;
 
@@ -81,9 +84,6 @@ std::ostream& operator<<(std::ostream& out, const program_options& opts)
 
     return out;
 }
-
-namespace
-{
 
 std::string help()
 {
