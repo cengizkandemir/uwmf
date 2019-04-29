@@ -89,8 +89,10 @@ std::string help()
 {
     std::stringstream ss;
     ss << "options:\n"
-            << "    -k: weight fall-off (default: 4)\n"
-            << "    -p: Minkowski exponent (default: 1)\n"
+            << "    -k: weight fall-off (default: "
+            << DEFAULT_WEIGHT_FALL_OFF << ")\n"
+            << "    -p: Minkowski exponent (default: "
+            << DEFAULT_MINKOWSKI_EXPONENT << ")\n"
             << "    -w: filtering window size\n"
             << "    -i: input png image\n"
             << "    -o: optional output file\n"
