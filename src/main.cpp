@@ -152,7 +152,15 @@ int main(int argc, char** argv)
 {
     logger::filter() = logger::log_level::VERBOSE;
 
-    std::optional<program_options> opts =  parse_options(argc, argv);
+    std::optional<program_options> opts;
+    try {
+        opts =  parse_options(argc, argv);
+    }
+    catch(const std::exception& error) {
+        LOGE() << error.what();
+        LOGI() << help();
+        return -1;
+    }
 
     if(!opts) {
         LOGE() << help();
