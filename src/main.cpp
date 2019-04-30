@@ -132,7 +132,7 @@ std::optional<program_options> parse_options(int argc, char** argv)
             std::exit(0);
             break;
         case ':':
-            LOGE() << "missing value for opt -" << static_cast<char>(optopt);
+            LOGE() << "missing value for option -" << static_cast<char>(optopt);
             break;
         case '?':
             LOGE() << "invalid argument -" << optarg;
