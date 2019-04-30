@@ -155,7 +155,7 @@ int main(int argc, char** argv)
 
     std::optional<program_options> opts;
     try {
-        opts =  parse_options(argc, argv);
+        opts = parse_options(argc, argv);
     }
     catch(const std::exception& error) {
         LOGE() << error.what();
