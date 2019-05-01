@@ -175,10 +175,10 @@ int main(int argc, char** argv)
 
     std::size_t size_x = 16;
     std::size_t size_y = 19;
-    image img(size_x, size_y);
+    image<char> img(size_x, size_y);
     for(std::size_t y = 0; y < size_y; y++) {
         for(std::size_t x = 0; x < size_x; x++) {
-            img(x, y) = static_cast<std::byte>(55);
+            img(x, y) = 55;
         }
     }
 

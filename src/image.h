@@ -10,7 +10,7 @@
 
 #include "utils.h"
 
-// TODO: maybe std::byte is not the way to go here
+template<typename PixelValueType>
 class image
 {
     friend void swap(image& first, image& second) noexcept
@@ -36,14 +36,15 @@ class image
 public:
     class const_image_iterator
     {
-        using const_iterator = std::vector<std::byte>::const_iterator;
+        using const_iterator =
+                typename std::vector<PixelValueType>::const_iterator;
 
     public:
         struct pixel
         {
             std::size_t x;
             std::size_t y;
-            std::byte value;
+            PixelValueType value;
         };
 
         const_image_iterator(const_iterator iter, std::size_t stride)
@@ -113,13 +114,13 @@ public:
 
     ~image() = default;
 
-    std::byte& operator()(std::size_t x, std::size_t y) noexcept
+    PixelValueType& operator()(std::size_t x, std::size_t y) noexcept
     {
         ASSERT(x + (width_ * y) < buffer_.size(), "indices out ouf bounds");
         return buffer_[x + (width_ * y)];
     }
 
-    const std::byte& operator()(std::size_t x, std::size_t y) const noexcept
+    const PixelValueType& operator()(std::size_t x, std::size_t y) const noexcept
     {
         ASSERT(x + (width_ * y) < buffer_.size(), "indices out ouf bounds");
         return buffer_[x + (width_ * y)];
@@ -139,5 +140,5 @@ public:
 private:
     std::size_t width_;
     std::size_t height_;
-    std::vector<std::byte> buffer_;
+    std::vector<PixelValueType> buffer_;
 };
