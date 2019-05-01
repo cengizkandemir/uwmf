@@ -210,12 +210,12 @@ public:
 
     const_image_pair_iterator begin() const
     {
-        return {image1_.begin(), image2_.begin()};
+        return const_image_pair_iterator(image1_.begin(), image2_.begin());
     }
 
     const_image_pair_iterator end() const
     {
-        return {image1_.end(), image2_.end()};
+        return const_image_pair_iterator(image1_.end(), image2_.end());
     }
 
 private:
