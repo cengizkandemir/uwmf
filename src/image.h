@@ -152,7 +152,6 @@ private:
     std::vector<PixelValueType> buffer_;
 };
 
-// TODO: use some other name than iterable_image_pair_view
 template<typename PixelValueType>
 class image_pair_view
 {
