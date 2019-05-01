@@ -114,13 +114,13 @@ public:
 
     ~image() = default;
 
-    PixelValueType& operator()(std::size_t x, std::size_t y) noexcept
+    PixelValueType& operator()(std::size_t x, std::size_t y)
     {
         ASSERT(x + (width_ * y) < buffer_.size(), "indices out ouf bounds");
         return buffer_[x + (width_ * y)];
     }
 
-    const PixelValueType& operator()(std::size_t x, std::size_t y) const noexcept
+    const PixelValueType& operator()(std::size_t x, std::size_t y) const
     {
         ASSERT(x + (width_ * y) < buffer_.size(), "indices out ouf bounds");
         return buffer_[x + (width_ * y)];
