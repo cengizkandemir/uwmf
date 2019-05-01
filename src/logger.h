@@ -55,7 +55,7 @@ public:
         static log_level fltr = log_level::INFO;
         return fltr;
     }
-    
+
 private:
     log_level level_;
     std::ostringstream stream_;
