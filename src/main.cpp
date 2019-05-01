@@ -1,3 +1,4 @@
+#include <cstddef>
 #include <cstdlib>
 #include <exception>
 #include <optional>
@@ -9,6 +10,7 @@
 
 #include <unistd.h>
 
+#include "image.h"
 #include "logger.h"
 
 namespace
@@ -170,6 +172,17 @@ int main(int argc, char** argv)
 
     LOGD() << "parameters in use:";
     LOGD() << opts.value();
+
+    std::size_t size_x = 16;
+    std::size_t size_y = 19;
+    image img(size_x, size_y);
+    for(std::size_t y = 0; y < size_y; y++) {
+        for(std::size_t x = 0; x < size_x; x++) {
+            img(x, y) = static_cast<std::byte>(55);
+        }
+    }
+
+    LOGI() << img;
 
     return 0;
 }
