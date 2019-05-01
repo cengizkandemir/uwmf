@@ -154,7 +154,7 @@ private:
 
 // TODO: use some other name than iterable_image_pair_view
 template<typename PixelValueType>
-class iterable_image_pair_view
+class image_pair_view
 {
 public:
     class const_image_pair_iterator
@@ -198,7 +198,7 @@ public:
         iter_type iter2_;
     };
 
-    iterable_image_pair_view(const image<PixelValueType> image1,
+    image_pair_view(const image<PixelValueType> image1,
             const image<PixelValueType> image2)
         : image1_(image1)
         , image2_(image2)

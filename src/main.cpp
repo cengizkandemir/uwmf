@@ -186,7 +186,7 @@ int main(int argc, char** argv)
 
     LOGI() << img;
 
-    for(const auto& [px1, px2]: iterable_image_pair_view(img, img2)) {
+    for(const auto& [px1, px2]: image_pair_view(img, img2)) {
         LOGI() << "px1 -> " << static_cast<int>(px1.value);
         LOGI() << "px2 -> " << static_cast<int>(px2.value);
     }
