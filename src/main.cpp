@@ -176,13 +176,20 @@ int main(int argc, char** argv)
     std::size_t size_x = 16;
     std::size_t size_y = 19;
     image<char> img(size_x, size_y);
+    image<char> img2(size_x, size_y);
     for(std::size_t y = 0; y < size_y; y++) {
         for(std::size_t x = 0; x < size_x; x++) {
             img(x, y) = 55;
+            img2(x, y) = 66;
         }
     }
 
     LOGI() << img;
+
+    for(const auto& [px1, px2]: iterable_image_pair_view(img, img2)) {
+        LOGI() << "px1 -> " << static_cast<int>(px1.value);
+        LOGI() << "px2 -> " << static_cast<int>(px2.value);
+    }
 
     return 0;
 }

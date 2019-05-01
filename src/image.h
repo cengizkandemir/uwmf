@@ -136,9 +136,89 @@ public:
         return const_image_iterator(buffer_.end(), width_);
     }
 
+    std::size_t width() const
+    {
+        return width_;
+    }
+
+    std::size_t height() const
+    {
+        return height_;
+    }
 
 private:
     std::size_t width_;
     std::size_t height_;
     std::vector<PixelValueType> buffer_;
+};
+
+// TODO: use some other name than iterable_image_pair_view
+template<typename PixelValueType>
+class iterable_image_pair_view
+{
+public:
+    class const_image_pair_iterator
+    {
+        using iter_type = typename image<PixelValueType>::const_image_iterator;
+        using pixel_type =
+                typename image<PixelValueType>::const_image_iterator::pixel;
+
+    public:
+        struct pixel_pair
+        {
+            pixel_type first;
+            pixel_type second;
+        };
+
+        const_image_pair_iterator(iter_type iter1, iter_type iter2)
+            : iter1_(iter1)
+            , iter2_(iter2)
+        {
+        }
+
+        pixel_pair operator*() const
+        {
+            return {*iter1_, *iter2_};
+        }
+
+        const_image_pair_iterator& operator++()
+        {
+            ++iter1_;
+            ++iter2_;
+            return *this;
+        }
+
+        bool operator!=(const const_image_pair_iterator& other) const
+        {
+            return iter1_ != other.iter1_ && iter2_ != other.iter2_;
+        }
+
+    private:
+        iter_type iter1_;
+        iter_type iter2_;
+    };
+
+    iterable_image_pair_view(const image<PixelValueType> image1,
+            const image<PixelValueType> image2)
+        : image1_(image1)
+        , image2_(image2)
+    {
+        ASSERT(image1_.width() == image2_.width() &&
+                image1_.height() == image2_.height(),
+                "incompatible image dimensions");
+    }
+
+    const_image_pair_iterator begin() const
+    {
+        return {image1_.begin(), image2_.begin()};
+    }
+
+    const_image_pair_iterator end() const
+    {
+        return {image1_.end(), image2_.end()};
+    }
+
+private:
+    const image<PixelValueType>& image1_;
+    const image<PixelValueType>& image2_;
 };
