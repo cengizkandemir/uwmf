@@ -4,4 +4,4 @@ This project implements (currently not, hopefully soon) the [impulse noise](http
 This will most likely be a command line tool. I am planning to make a CUDA implementation once this one is finished.
 
 ### Lincense
-GPLv3. See LICENSE for full description.
+GPLv3. See [LICENSE](https://github.com/cengizkandemir/uwmf/blob/master/LICENSE) for full description.
