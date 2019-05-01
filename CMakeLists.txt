@@ -4,7 +4,11 @@ project(uwmf)
 
 set(SOURCES
   src/utils.h
+  src/utils.cpp
   src/logger.h
+  src/logger.cpp
+  src/image.h
+  src/image.cpp
   src/main.cpp)
 
 add_executable(uwmf ${SOURCES})
