@@ -205,8 +205,8 @@ public:
         iter_type iter2_;
     };
 
-    image_pair_view(const basic_image<PixelValueType> image1,
-            const basic_image<PixelValueType> image2)
+    image_pair_view(const basic_image<PixelValueType>& image1,
+            const basic_image<PixelValueType>& image2)
         : image1_(image1)
         , image2_(image2)
     {
