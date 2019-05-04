@@ -21,11 +21,11 @@ class basic_image
         swap(first.buffer_, second.buffer_);
     }
 
-    friend std::ostream& operator<<(std::ostream& out, const basic_image& img)
+    friend std::ostream& operator<<(std::ostream& out, const basic_image& image)
     {
         out << "\n";
 
-        for(const auto& [x, y, intensity]: img) {
+        for(const auto& [x, y, intensity]: image) {
             out << "    ({" << x << ", " << y << "} -> "
                     << static_cast<int>(intensity) << ")\n";
         }
