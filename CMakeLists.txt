@@ -20,6 +20,11 @@ target_compile_options(uwmf PRIVATE
   -Werror
   -Wshadow
   -Wpedantic
-  -pedantic-errors)
+  -pedantic-errors
+  -ggdb
+  -g3
+  -fsanitize=address)
+
+target_link_libraries(uwmf asan)
 
 install(TARGETS uwmf RUNTIME DESTINATION bin)
