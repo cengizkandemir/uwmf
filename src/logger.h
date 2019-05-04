@@ -8,17 +8,20 @@
 #include "utils.h"
 
 #define LOG_IMPL(level)                         \
-    if(level < logger::filter()) {              \
+    if(level < uwmf::logger::filter()) {        \
         ;                                       \
     }                                           \
     else                                        \
-        logger(level).stream()
+        uwmf::logger(level).stream()
 
-#define LOGV() LOG_IMPL(logger::log_level::VERBOSE)
-#define LOGD() LOG_IMPL(logger::log_level::DEBUG)
-#define LOGI() LOG_IMPL(logger::log_level::INFO)
-#define LOGW() LOG_IMPL(logger::log_level::WARNING)
-#define LOGE() LOG_IMPL(logger::log_level::ERROR)
+#define LOGV() LOG_IMPL(uwmf::logger::log_level::VERBOSE)
+#define LOGD() LOG_IMPL(uwmf::logger::log_level::DEBUG)
+#define LOGI() LOG_IMPL(uwmf::logger::log_level::INFO)
+#define LOGW() LOG_IMPL(uwmf::logger::log_level::WARNING)
+#define LOGE() LOG_IMPL(uwmf::logger::log_level::ERROR)
+
+namespace uwmf
+{
 
 class logger
 {
@@ -84,3 +87,5 @@ private:
         return "";
     }
 };
+
+} // uwmf

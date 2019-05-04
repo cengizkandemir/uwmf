@@ -153,7 +153,7 @@ std::optional<program_options> parse_options(int argc, char** argv)
 
 int main(int argc, char** argv)
 {
-    logger::filter() = logger::log_level::VERBOSE;
+    uwmf::logger::filter() = uwmf::logger::log_level::VERBOSE;
 
     std::optional<program_options> opts;
     try {
@@ -175,8 +175,8 @@ int main(int argc, char** argv)
 
     std::size_t size_x = 16;
     std::size_t size_y = 19;
-    monochrome_image img(size_x, size_y);
-    monochrome_image img2(size_x, size_y);
+    uwmf::monochrome_image img(size_x, size_y);
+    uwmf::monochrome_image img2(size_x, size_y);
     for(std::size_t y = 0; y < size_y; y++) {
         for(std::size_t x = 0; x < size_x; x++) {
             img(x, y) = 55;
@@ -186,7 +186,7 @@ int main(int argc, char** argv)
 
     LOGI() << img;
 
-    for(const auto& [px1, px2]: image_pair_view(img, img2)) {
+    for(const auto& [px1, px2]: uwmf::image_pair_view(img, img2)) {
         LOGI() << "px1 -> " << static_cast<int>(px1.value);
         LOGI() << "px2 -> " << static_cast<int>(px2.value);
     }

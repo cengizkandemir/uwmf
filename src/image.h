@@ -10,6 +10,9 @@
 
 #include "utils.h"
 
+namespace uwmf
+{
+
 template<typename PixelValueType>
 class basic_image
 {
@@ -226,3 +229,5 @@ private:
     const basic_image<PixelValueType>& image1_;
     const basic_image<PixelValueType>& image2_;
 };
+
+} // uwmf
