@@ -11,9 +11,9 @@
 #include "utils.h"
 
 template<typename PixelValueType>
-class image
+class basic_image
 {
-    friend void swap(image& first, image& second) noexcept
+    friend void swap(basic_image& first, basic_image& second) noexcept
     {
         using std::swap;
         swap(first.width_, second.width_);
@@ -21,7 +21,7 @@ class image
         swap(first.buffer_, second.buffer_);
     }
 
-    friend std::ostream& operator<<(std::ostream& out, const image& img)
+    friend std::ostream& operator<<(std::ostream& out, const basic_image& img)
     {
         out << "\n";
 
@@ -77,27 +77,27 @@ public:
         const std::size_t stride_;
     };
 
-    image()
+    basic_image()
         : width_(0)
         , height_(0)
     {
     }
 
-    image(std::size_t width, std::size_t height)
+    basic_image(std::size_t width, std::size_t height)
         : width_(width)
         , height_(height)
         , buffer_(width * height)
     {
     }
 
-    image(const image& other)
+    basic_image(const basic_image& other)
         : width_(other.width_)
         , height_(other.height_)
         , buffer_(other.buffer_)
     {
     }
 
-    image(image&& other) noexcept
+    basic_image(basic_image&& other) noexcept
         : width_(other.width_)
         , height_(other.height_)
         , buffer_(other.buffer_)
@@ -106,13 +106,13 @@ public:
         other.height_ = 0;
     }
 
-    image& operator=(image other)
+    basic_image& operator=(basic_image other)
     {
         swap(*this, other);
         return *this;
     }
 
-    ~image() = default;
+    ~basic_image() = default;
 
     PixelValueType& operator()(std::size_t x, std::size_t y)
     {
@@ -158,9 +158,10 @@ class image_pair_view
 public:
     class const_image_pair_iterator
     {
-        using iter_type = typename image<PixelValueType>::const_image_iterator;
+        using iter_type =
+                typename basic_image<PixelValueType>::const_image_iterator;
         using pixel_type =
-                typename image<PixelValueType>::const_image_iterator::pixel;
+                typename basic_image<PixelValueType>::const_image_iterator::pixel;
 
     public:
         struct pixel_pair
@@ -197,8 +198,8 @@ public:
         iter_type iter2_;
     };
 
-    image_pair_view(const image<PixelValueType> image1,
-            const image<PixelValueType> image2)
+    image_pair_view(const basic_image<PixelValueType> image1,
+            const basic_image<PixelValueType> image2)
         : image1_(image1)
         , image2_(image2)
     {
@@ -218,6 +219,6 @@ public:
     }
 
 private:
-    const image<PixelValueType>& image1_;
-    const image<PixelValueType>& image2_;
+    const basic_image<PixelValueType>& image1_;
+    const basic_image<PixelValueType>& image2_;
 };
