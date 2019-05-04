@@ -25,6 +25,8 @@ class basic_image
     }
 
 public:
+    using val_type = PixelValueType;
+
     class const_image_iterator
     {
         using const_iterator =

@@ -12,6 +12,7 @@
 
 #include "image.h"
 #include "logger.h"
+#include "math_utils.h"
 
 namespace
 {
@@ -190,6 +191,9 @@ int main(int argc, char** argv)
         LOGI() << "px1 -> " << static_cast<int>(px1.value);
         LOGI() << "px2 -> " << static_cast<int>(px2.value);
     }
+
+    LOGI() << "mse: " << uwmf::mse(img, img2);
+    LOGI() << "psnr: " << uwmf::psnr(img, img2);
 
     return 0;
 }

@@ -9,6 +9,8 @@ set(SOURCES
   src/logger.cpp
   src/image.h
   src/image.cpp
+  src/math_utils.h
+  src/math_utils.cpp
   src/main.cpp)
 
 add_executable(uwmf ${SOURCES})
