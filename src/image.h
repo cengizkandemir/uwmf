@@ -152,6 +152,8 @@ private:
     std::vector<PixelValueType> buffer_;
 };
 
+using monochrome_image = basic_image<char>;
+
 template<typename PixelValueType>
 class image_pair_view
 {
