@@ -21,18 +21,6 @@ class basic_image
         swap(first.buffer_, second.buffer_);
     }
 
-    friend std::ostream& operator<<(std::ostream& out, const basic_image& image)
-    {
-        out << "\n";
-
-        for(const auto& [x, y, intensity]: image) {
-            out << "    ({" << x << ", " << y << "} -> "
-                    << static_cast<int>(intensity) << ")\n";
-        }
-
-        return out;
-    }
-
 public:
     class const_image_iterator
     {
@@ -151,6 +139,20 @@ private:
     std::size_t height_;
     std::vector<PixelValueType> buffer_;
 };
+
+template<typename PixelValueType>
+std::ostream& operator<<(std::ostream& out,
+        const basic_image<PixelValueType>& image)
+{
+    out << "\n";
+
+    for(const auto& [x, y, intensity]: image) {
+        out << "    ({" << x << ", " << y << "} -> "
+                << static_cast<int>(intensity) << ")\n";
+    }
+
+    return out;
+}
 
 using monochrome_image = basic_image<char>;
 
