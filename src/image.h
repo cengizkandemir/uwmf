@@ -182,10 +182,7 @@ public:
         using const_image_iterator =
                 typename basic_image<PixelValueType>::template image_iterator<
                         typename basic_image<PixelValueType>::const_iterator>;
-        using pixel_type =
-                typename basic_image<PixelValueType>::template image_iterator<
-                        typename basic_image<
-                                PixelValueType>::const_iterator>::pixel;
+        using pixel_type = typename const_image_iterator::pixel;
 
     public:
         struct pixel_pair
