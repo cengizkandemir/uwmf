@@ -26,12 +26,14 @@ class basic_image
 
 public:
     using val_type = PixelValueType;
-
-    class const_image_iterator
-    {
-        using const_iterator =
+    using iterator =
+                typename std::vector<PixelValueType>::iterator;
+    using const_iterator =
                 typename std::vector<PixelValueType>::const_iterator;
 
+    template<typename IteratorType>
+    class image_iterator
+    {
     public:
         struct pixel
         {
@@ -40,14 +42,14 @@ public:
             PixelValueType value;
         };
 
-        const_image_iterator(const_iterator iter, std::size_t stride)
+        image_iterator(IteratorType iter, std::size_t stride)
             : start_(iter)
             , curr_(iter)
             , stride_(stride)
         {
         }
 
-        const_image_iterator& operator++()
+        image_iterator& operator++()
         {
             ++curr_;
             return *this;
@@ -59,14 +61,14 @@ public:
             return {diff % stride_, diff / stride_, *curr_};
         }
 
-        bool operator!=(const const_image_iterator& other) const
+        bool operator!=(const image_iterator& other) const
         {
             return curr_ != other.curr_;
         }
 
     private:
-        const const_iterator start_;
-        const_iterator curr_;
+        const IteratorType start_;
+        IteratorType curr_;
         const std::size_t stride_;
     };
 
@@ -119,14 +121,24 @@ public:
         return buffer_[x + (width_ * y)];
     }
 
-    const_image_iterator begin() const
+    image_iterator<iterator> begin()
     {
-        return const_image_iterator(buffer_.begin(), width_);
+        return image_iterator(buffer_.begin(), width_);
     }
 
-    const_image_iterator end() const
+    image_iterator<const_iterator> begin() const
     {
-        return const_image_iterator(buffer_.end(), width_);
+        return image_iterator(buffer_.begin(), width_);
+    }
+
+    image_iterator<iterator> end()
+    {
+        return image_iterator(buffer_.end(), width_);
+    }
+
+    image_iterator<const_iterator> end() const
+    {
+        return image_iterator(buffer_.end(), width_);
     }
 
     std::size_t width() const
@@ -167,10 +179,13 @@ class image_pair_view
 public:
     class const_image_pair_iterator
     {
-        using iter_type =
-                typename basic_image<PixelValueType>::const_image_iterator;
+        using const_image_iterator =
+                typename basic_image<PixelValueType>::template image_iterator<
+                        typename basic_image<PixelValueType>::const_iterator>;
         using pixel_type =
-                typename basic_image<PixelValueType>::const_image_iterator::pixel;
+                typename basic_image<PixelValueType>::template image_iterator<
+                        typename basic_image<
+                                PixelValueType>::const_iterator>::pixel;
 
     public:
         struct pixel_pair
@@ -179,7 +194,8 @@ public:
             pixel_type second;
         };
 
-        const_image_pair_iterator(iter_type iter1, iter_type iter2)
+        const_image_pair_iterator(const_image_iterator iter1,
+                const_image_iterator iter2)
             : iter1_(iter1)
             , iter2_(iter2)
         {
@@ -203,8 +219,8 @@ public:
         }
 
     private:
-        iter_type iter1_;
-        iter_type iter2_;
+        const_image_iterator iter1_;
+        const_image_iterator iter2_;
     };
 
     image_pair_view(const basic_image<PixelValueType>& image1,
