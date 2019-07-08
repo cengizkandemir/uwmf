@@ -24,12 +24,18 @@ class basic_image
         swap(first.buffer_, second.buffer_);
     }
 
+    using vec_iterator =
+                typename std::vector<PixelValueType>::iterator;
+    using const_vec_iterator =
+                typename std::vector<PixelValueType>::const_iterator;
 public:
     using val_type = PixelValueType;
-    using iterator =
-                typename std::vector<PixelValueType>::iterator;
-    using const_iterator =
-                typename std::vector<PixelValueType>::const_iterator;
+
+    template<typename T>
+    class image_iterator;
+
+    using iterator = image_iterator<vec_iterator>;
+    using const_iterator = image_iterator<const_vec_iterator>;
 
     template<typename IteratorType>
     class image_iterator
@@ -121,22 +127,22 @@ public:
         return buffer_[x + (width_ * y)];
     }
 
-    image_iterator<iterator> begin()
+    iterator begin()
     {
         return image_iterator(buffer_.begin(), width_);
     }
 
-    image_iterator<const_iterator> begin() const
+    const_iterator begin() const
     {
         return image_iterator(buffer_.begin(), width_);
     }
 
-    image_iterator<iterator> end()
+    iterator end()
     {
         return image_iterator(buffer_.end(), width_);
     }
 
-    image_iterator<const_iterator> end() const
+    const_iterator end() const
     {
         return image_iterator(buffer_.end(), width_);
     }
@@ -180,8 +186,7 @@ public:
     class const_image_pair_iterator
     {
         using const_image_iterator =
-                typename basic_image<PixelValueType>::template image_iterator<
-                        typename basic_image<PixelValueType>::const_iterator>;
+                typename basic_image<PixelValueType>::const_iterator;
         using pixel_type = typename const_image_iterator::pixel;
 
     public:
