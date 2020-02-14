@@ -20,7 +20,7 @@ float mse(const monochrome_image& image1, const monochrome_image& image2)
 float psnr(const monochrome_image& image1, const monochrome_image& image2)
 {
     return 10 * std::log10(std::pow(
-            std::numeric_limits<monochrome_image::val_type>::max(), 2)
+            std::numeric_limits<monochrome_image::value_type>::max(), 2)
             / mse(image1, image2));
 }
 

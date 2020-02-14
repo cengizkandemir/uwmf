@@ -29,7 +29,7 @@ class basic_image
     using const_vec_iterator =
                 typename std::vector<PixelValueType>::const_iterator;
 public:
-    using val_type = PixelValueType;
+    using value_type = PixelValueType;
 
     template<typename T>
     class image_iterator;
