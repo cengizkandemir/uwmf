@@ -17,14 +17,6 @@ namespace uwmf
 template<typename PixelValueType>
 class basic_image
 {
-    friend void swap(basic_image& first, basic_image& second) noexcept
-    {
-        using std::swap;
-        swap(first.width_, second.width_);
-        swap(first.height_, second.height_);
-        swap(first.buffer_, second.buffer_);
-    }
-
 public:
     using value_type = PixelValueType;
 
@@ -86,30 +78,6 @@ public:
         , buffer_(width * height)
     {
     }
-
-    basic_image(const basic_image& other)
-        : width_(other.width_)
-        , height_(other.height_)
-        , buffer_(other.buffer_)
-    {
-    }
-
-    basic_image(basic_image&& other) noexcept
-        : width_(other.width_)
-        , height_(other.height_)
-        , buffer_(other.buffer_)
-    {
-        other.width_ = 0;
-        other.height_ = 0;
-    }
-
-    basic_image& operator=(basic_image other)
-    {
-        swap(*this, other);
-        return *this;
-    }
-
-    ~basic_image() = default;
 
     PixelValueType& operator()(std::size_t x, std::size_t y)
     {
