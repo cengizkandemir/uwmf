@@ -178,18 +178,44 @@ int main(int argc, char** argv)
     std::size_t size_y = 19;
     uwmf::monochrome_image img(size_x, size_y);
     uwmf::monochrome_image img2(size_x, size_y);
+    uwmf::monochrome_image img3(size_x, size_y);
     for(std::size_t y = 0; y < size_y; y++) {
         for(std::size_t x = 0; x < size_x; x++) {
             img(x, y) = 55;
             img2(x, y) = 66;
+            img3(x, y) = 77;
         }
     }
 
     LOGI() << img;
 
-    for(const auto& [px1, px2]: uwmf::image_pair_view(img, img2)) {
+    for(const auto [x, y, val]: img) {
+        LOGI() << "px1 -> " << static_cast<int>(val);
+    }
+
+    const auto& img_ref = img;
+    const auto& img_ref2 = img;
+
+    for(const auto [x, y, val]: img_ref) {
+        LOGI() << "px1 -> " << static_cast<int>(val);
+    }
+
+    for(const auto [first, second]: uwmf::make_image_zip(img_ref, img_ref2)) {
+        LOGI() << "px1 -> " << static_cast<int>(first.value);
+    }
+
+    for(const auto& [px1, px2, px3]:
+                uwmf::make_image_zip(img, img2, img3)) {
         LOGI() << "px1 -> " << static_cast<int>(px1.value);
         LOGI() << "px2 -> " << static_cast<int>(px2.value);
+        LOGI() << "px3 -> " << static_cast<int>(px3.value);
+    }
+
+    for(auto [px1, px2, px3]:
+                uwmf::make_image_zip(img, img2, img3)) {
+        LOGI() << "px1 -> " << static_cast<int>(px1.value);
+        LOGI() << "px2 -> " << static_cast<int>(px2.value);
+        LOGI() << "px3 -> " << static_cast<int>(px3.value);
     }
 
     LOGI() << "mse: " << uwmf::mse(img, img2);

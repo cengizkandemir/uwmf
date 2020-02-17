@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <iterator>
 #include <ostream>
+#include <tuple>
 #include <utility>
 #include <vector>
 
@@ -24,18 +25,8 @@ class basic_image
         swap(first.buffer_, second.buffer_);
     }
 
-    using vec_iterator =
-                typename std::vector<PixelValueType>::iterator;
-    using const_vec_iterator =
-                typename std::vector<PixelValueType>::const_iterator;
 public:
     using value_type = PixelValueType;
-
-    template<typename T>
-    class image_iterator;
-
-    using iterator = image_iterator<vec_iterator>;
-    using const_iterator = image_iterator<const_vec_iterator>;
 
     template<typename IteratorType>
     class image_iterator
@@ -67,9 +58,14 @@ public:
             return {diff % stride_, diff / stride_, *curr_};
         }
 
+        bool operator==(const image_iterator& other) const
+        {
+            return curr_ == other.curr_;
+        }
+
         bool operator!=(const image_iterator& other) const
         {
-            return curr_ != other.curr_;
+            return !(curr_ == other.curr_);
         }
 
     private:
@@ -127,24 +123,24 @@ public:
         return buffer_[x + (width_ * y)];
     }
 
-    iterator begin()
+    auto begin()
     {
-        return image_iterator(buffer_.begin(), width_);
+        return image_iterator(std::begin(buffer_), width_);
     }
 
-    const_iterator begin() const
+    auto begin() const
     {
-        return image_iterator(buffer_.begin(), width_);
+        return image_iterator(std::begin(buffer_), width_);
     }
 
-    iterator end()
+    auto end()
     {
-        return image_iterator(buffer_.end(), width_);
+        return image_iterator(std::end(buffer_), width_);
     }
 
-    const_iterator end() const
+    auto end() const
     {
-        return image_iterator(buffer_.end(), width_);
+        return image_iterator(std::end(buffer_), width_);
     }
 
     std::size_t width() const
@@ -179,75 +175,121 @@ std::ostream& operator<<(std::ostream& out,
 
 using monochrome_image = basic_image<char>;
 
-template<typename PixelValueType>
-class image_pair_view
+template<typename... ImageType>
+class image_zip_iterator
 {
-public:
-    class const_image_pair_iterator
+    template <typename... Args>
+    static bool all_equal(const Args&... args)
     {
-        using const_image_iterator =
-                typename basic_image<PixelValueType>::const_iterator;
-        using pixel_type = typename const_image_iterator::pixel;
+        static_assert(sizeof...(Args) != 0);
+        return [] (auto const& first, auto const&... rest)
+               {
+                   return ((first == rest) && ...);
+               }(args...);
+    }
 
+public:
+    template<typename... IteratorType>
+    class zip_iterator
+    {
+        using pixel_tuple = std::tuple<typename IteratorType::pixel...>;
     public:
-        struct pixel_pair
-        {
-            pixel_type first;
-            pixel_type second;
-        };
 
-        const_image_pair_iterator(const_image_iterator iter1,
-                const_image_iterator iter2)
-            : iter1_(iter1)
-            , iter2_(iter2)
+        zip_iterator(IteratorType&&... iters)
+            : iters_(std::make_tuple(std::forward<IteratorType>(iters)...))
         {
         }
 
-        pixel_pair operator*() const
+        pixel_tuple operator*() const
         {
-            return {*iter1_, *iter2_};
+            return std::apply(
+                    [] (auto&&... iters)
+                    {
+                        return std::make_tuple(*iters...);
+                    }, iters_);
         }
 
-        const_image_pair_iterator& operator++()
+        zip_iterator& operator++()
         {
-            ++iter1_;
-            ++iter2_;
+            std::apply(
+                    [] (auto&&... iters)
+                    {
+                        (++iters, ...);
+                    }, iters_);
             return *this;
         }
 
-        bool operator!=(const const_image_pair_iterator& other) const
+        bool operator==(const zip_iterator& other) const
         {
-            return iter1_ != other.iter1_ && iter2_ != other.iter2_;
+            return iters_ == other.iters_;
+        }
+
+        bool operator!=(const zip_iterator& other) const
+        {
+            return !(iters_ == other.iters_);
         }
 
     private:
-        const_image_iterator iter1_;
-        const_image_iterator iter2_;
+        std::tuple<IteratorType...> iters_;
     };
 
-    image_pair_view(const basic_image<PixelValueType>& image1,
-            const basic_image<PixelValueType>& image2)
-        : image1_(image1)
-        , image2_(image2)
+    template<typename... _ImageType>
+    image_zip_iterator(_ImageType&&... images)
+        : images_(std::forward<_ImageType>(images)...)
     {
-        ASSERT(image1_.width() == image2_.width() &&
-                image1_.height() == image2_.height(),
-                "incompatible image dimensions");
+        // TODO: static_assert that _ImageType and ImageType are the same
+        ASSERT(std::apply(
+                [] (auto&&... _images)
+                {
+                    return all_equal(_images.width()...);
+                }, images_), "incompatible image dimensions");
     }
 
-    const_image_pair_iterator begin() const
+    auto begin()
     {
-        return const_image_pair_iterator(image1_.begin(), image2_.begin());
+        return std::apply(
+                [] (auto&&... images)
+                {
+                    // TODO: forward the pack?
+                    return zip_iterator(std::begin(images)...);
+                }, images_);
     }
 
-    const_image_pair_iterator end() const
+    auto begin() const
     {
-        return const_image_pair_iterator(image1_.end(), image2_.end());
+        return std::apply(
+                [] (auto&&... images)
+                {
+                    return zip_iterator(std::begin(images)...);
+                }, images_);
+    }
+
+    auto end()
+    {
+        return std::apply(
+                [] (auto&&... images)
+                {
+                    return zip_iterator(std::end(images)...);
+                }, images_);
+    }
+
+    auto end() const
+    {
+        return std::apply(
+                [] (auto&&... images)
+                {
+                    return zip_iterator(std::end(images)...);
+                }, images_);
     }
 
 private:
-    const basic_image<PixelValueType>& image1_;
-    const basic_image<PixelValueType>& image2_;
+    const std::tuple<ImageType...> images_;
 };
+
+template<typename... ImageType>
+inline auto make_image_zip(ImageType&&... images)
+{
+    return image_zip_iterator<ImageType...>(std::forward<ImageType>(images)...);
+}
 
 } // uwmf

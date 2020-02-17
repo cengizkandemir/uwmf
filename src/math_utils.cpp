@@ -10,7 +10,8 @@ float mse(const monochrome_image& image1, const monochrome_image& image2)
 {
     int sum = 0;
 
-    for(const auto& [px1, px2]: image_pair_view(image1, image2)) {
+    for(const auto& [px1, px2]:
+                make_image_zip(image1, image2)) {
         sum += std::pow(px1.value - px2.value, 2);
     }
 
