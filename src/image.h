@@ -201,15 +201,15 @@ public:
         std::tuple<IteratorType...> iters_;
     };
 
-    template<typename... _ImageType>
-    image_zip_iterator(_ImageType&&... images)
-        : images_(std::forward<_ImageType>(images)...)
+    template<typename... Args>
+    image_zip_iterator(Args&&... args)
+        : images_(std::forward<Args>(args)...)
     {
         // TODO: static_assert that _ImageType and ImageType are the same
         ASSERT(std::apply(
-                [] (auto&&... _images)
+                [] (auto&&... images)
                 {
-                    return all_equal(_images.width()...);
+                    return all_equal(images.width()...);
                 }, images_), "incompatible image dimensions");
     }
 
