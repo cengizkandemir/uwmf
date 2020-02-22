@@ -3,5 +3,10 @@ This project implements (currently not, hopefully soon) the [impulse noise](http
 
 This will most likely be a command line tool. I am planning to make a CUDA implementation once this one is finished.
 
+### TODO
+* improve command line option parsing
+* make sure image.h compiles with clang-8
+* png import
+
 ### Lincense
 GPLv3. See [LICENSE](https://github.com/cengizkandemir/uwmf/blob/master/LICENSE) for full description.
