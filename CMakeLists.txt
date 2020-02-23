@@ -47,6 +47,8 @@ set(SOURCES
 
 add_executable(uwmf ${SOURCES})
 
+add_dependencies(uwmf ${ZLIB} ${LIBPNG})
+
 target_include_directories(uwmf PRIVATE ${LIBPNG_DIR})
 
 target_compile_options(uwmf PRIVATE
