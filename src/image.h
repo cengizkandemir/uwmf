@@ -205,7 +205,7 @@ public:
     image_zip_iterator(Args&&... args)
         : images_(std::forward<Args>(args)...)
     {
-        // TODO: static_assert that _ImageType and ImageType are the same
+        // TODO: static_assert that Args and ImageType are the same
         ASSERT(std::apply(
                 [] (auto&&... images)
                 {
