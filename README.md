@@ -7,6 +7,7 @@ This will most likely be a command line tool. I am planning to make a CUDA imple
 * improve command line option parsing
 * make sure image.h compiles with clang-8
 * png import
+* compile zlib using cmake instead of autoconf
 
 ### Lincense
 GPLv3. See [LICENSE](https://github.com/cengizkandemir/uwmf/blob/master/LICENSE) for full description.
