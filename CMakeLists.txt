@@ -9,8 +9,6 @@ ExternalProject_Add(${ZLIB}
   PREFIX ${ZLIB}
   DOWNLOAD_COMMAND ""
   SOURCE_DIR ${ZLIB_DIR}
-  CONFIGURE_COMMAND ${ZLIB_DIR}/./configure --static
-  BUILD_COMMAND make
   INSTALL_COMMAND "")
 
 ExternalProject_Get_property(${ZLIB} BINARY_DIR)
