@@ -58,6 +58,16 @@ public:
         return true;
     }
 
+    std::size_t width() const
+    {
+        return image_.width;
+    }
+
+    std::size_t height() const
+    {
+        return image_.height;
+    }
+
     const std::vector<char>& raw_data() const
     {
         return buffer_;
