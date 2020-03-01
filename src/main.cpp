@@ -13,6 +13,7 @@
 #include "image.h"
 #include "logger.h"
 #include "math_utils.h"
+#include "png_image.h"
 
 namespace
 {
@@ -221,5 +222,15 @@ int main(int argc, char** argv)
     LOGI() << "mse: " << uwmf::mse(img, img2);
     LOGI() << "psnr: " << uwmf::psnr(img, img2);
 
+    uwmf::gray_png_image gray_img("../images/lena.png");
+
+    auto first = gray_img.raw_data();
+    LOGD() << "data: " << gray_img.raw_data().size() << '\n';
+    gray_img.write("../images/lena_2.png");
+
+    uwmf::gray_png_image gray_img2("../images/lena_2.png");
+    auto second = gray_img2.raw_data();
+
+    LOGD() << "equal? " << (first == second);
     return 0;
 }

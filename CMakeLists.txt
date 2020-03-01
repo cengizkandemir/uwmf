@@ -39,6 +39,8 @@ set(SOURCES
   src/logger.cpp
   src/image.h
   src/image.cpp
+  src/png_image.h
+  src/png_image.cpp
   src/math_utils.h
   src/math_utils.cpp
   src/main.cpp)
@@ -61,6 +63,6 @@ target_compile_options(uwmf PRIVATE
   -g3
   -fsanitize=address)
 
-target_link_libraries(uwmf asan ${ZLIB_LIBRARY} ${LIBPNG_LIBRARY})
+target_link_libraries(uwmf asan ${LIBPNG_LIBRARY} ${ZLIB_LIBRARY})
 
 install(TARGETS uwmf RUNTIME DESTINATION bin)
