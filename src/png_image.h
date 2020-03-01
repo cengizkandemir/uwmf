@@ -39,7 +39,8 @@ public:
 
         image_.format = PNG_FORMAT_GRAY;
         buffer_.resize(PNG_IMAGE_SIZE(image_));
-        if(!png_image_finish_read(&image_, nullptr, buffer_.data(), 0, nullptr)) {
+        if(!png_image_finish_read(&image_, nullptr, buffer_.data(),
+            0, nullptr)) {
             LOGE() << "failed to finish reading png file";
             return false;
         }
@@ -49,8 +50,8 @@ public:
 
     bool write(const std::string_view file_name)
     {
-        if(!png_image_write_to_file(&image_, file_name.data(), 0, buffer_.data(), 0,
-            nullptr)) {
+        if(!png_image_write_to_file(&image_, file_name.data(), 0, buffer_.data()
+            , 0,nullptr)) {
             LOGE() << "failed to write png file";
             return false;
         }
