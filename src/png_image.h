@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include <cstddef>
 #include <stdexcept>
 #include <string_view>
 #include <vector>
@@ -59,14 +58,14 @@ public:
         return true;
     }
 
-    const std::vector<std::byte>& raw_data() const
+    const std::vector<char>& raw_data() const
     {
         return buffer_;
     }
 
 private:
     png_image image_;
-    std::vector<std::byte> buffer_;
+    std::vector<char> buffer_;
 };
 
 } // uwmf
