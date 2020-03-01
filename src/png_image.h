@@ -38,8 +38,8 @@ public:
         }
 
         image_.format = PNG_FORMAT_GRAY;
-        data_.resize(PNG_IMAGE_SIZE(image_));
-        if(!png_image_finish_read(&image_, nullptr, data_.data(), 0, nullptr)) {
+        buffer_.resize(PNG_IMAGE_SIZE(image_));
+        if(!png_image_finish_read(&image_, nullptr, buffer_.data(), 0, nullptr)) {
             LOGE() << "failed to finish reading png file";
             return false;
         }
@@ -49,7 +49,7 @@ public:
 
     bool write(const std::string_view file_name)
     {
-        if(!png_image_write_to_file(&image_, file_name.data(), 0, data_.data(), 0,
+        if(!png_image_write_to_file(&image_, file_name.data(), 0, buffer_.data(), 0,
             nullptr)) {
             LOGE() << "failed to write png file";
             return false;
@@ -60,12 +60,12 @@ public:
 
     const std::vector<std::byte>& raw_data() const
     {
-        return data_;
+        return buffer_;
     }
 
 private:
     png_image image_;
-    std::vector<std::byte> data_;
+    std::vector<std::byte> buffer_;
 };
 
 } // uwmf
