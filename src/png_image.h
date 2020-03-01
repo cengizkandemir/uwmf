@@ -12,15 +12,15 @@
 namespace uwmf
 {
 
-class gray_png_image
+class monochrome_png_image
 {
 public:
-    gray_png_image()
+    monochrome_png_image()
         : image_{}
     {
     }
 
-    gray_png_image(std::string_view file_name)
+    monochrome_png_image(std::string_view file_name)
         : image_{}
     {
         if(!read(file_name)) {
