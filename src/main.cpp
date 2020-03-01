@@ -232,5 +232,10 @@ int main(int argc, char** argv)
     auto second = png_img2.raw_data();
 
     LOGD() << "equal? " << (first == second);
+
+    uwmf::monochrome_image img4(png_img.raw_data(), png_img.width(),
+            png_img.height());
+
+    LOGD() << "width: " << img4.width() << ", height: " << img4.height();
     return 0;
 }

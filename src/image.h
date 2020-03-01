@@ -79,6 +79,22 @@ public:
     {
     }
 
+    basic_image(const std::vector<PixelValueType>& buffer,
+            std::size_t width, std::size_t height)
+        : width_(width)
+        , height_(height)
+        , buffer_(buffer)
+    {
+    }
+
+    basic_image(std::vector<PixelValueType>&& buffer,
+            std::size_t width, std::size_t height)
+        : width_(width)
+        , height_(height)
+        , buffer_(buffer)
+    {
+    }
+
     PixelValueType& operator()(std::size_t x, std::size_t y)
     {
         ASSERT(x + (width_ * y) < buffer_.size(), "indices out ouf bounds");
