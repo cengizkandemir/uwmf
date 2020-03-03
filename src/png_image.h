@@ -49,8 +49,8 @@ public:
 
     bool write(const std::string& file_name)
     {
-        if(!png_image_write_to_file(&image_, file_name.c_str(), 0, buffer_.data()
-            , 0,nullptr)) {
+        if(!png_image_write_to_file(&image_, file_name.c_str(), 0, buffer_.data(),
+            0, nullptr)) {
             LOGE() << "failed to write png file";
             return false;
         }
