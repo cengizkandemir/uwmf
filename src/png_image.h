@@ -3,7 +3,7 @@
 #pragma once
 
 #include <stdexcept>
-#include <string_view>
+#include <string>
 #include <vector>
 
 #include "logger.h"
@@ -20,7 +20,7 @@ public:
     {
     }
 
-    monochrome_png_image(std::string_view file_name)
+    monochrome_png_image(const std::string& file_name)
         : image_{}
     {
         if(!read(file_name)) {
@@ -28,10 +28,10 @@ public:
         }
     }
 
-    bool read(const std::string_view file_name)
+    bool read(const std::string& file_name)
     {
         image_.version = PNG_IMAGE_VERSION;
-        if(!png_image_begin_read_from_file(&image_, file_name.data())) {
+        if(!png_image_begin_read_from_file(&image_, file_name.c_str())) {
             LOGE() << "failed to begin reading png file";
             return false;
         }
@@ -47,9 +47,9 @@ public:
         return true;
     }
 
-    bool write(const std::string_view file_name)
+    bool write(const std::string& file_name)
     {
-        if(!png_image_write_to_file(&image_, file_name.data(), 0, buffer_.data()
+        if(!png_image_write_to_file(&image_, file_name.c_str(), 0, buffer_.data()
             , 0,nullptr)) {
             LOGE() << "failed to write png file";
             return false;
