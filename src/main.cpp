@@ -1,14 +1,10 @@
-#include <cstddef>
-#include <cstdlib>
-#include <exception>
+#include <array>
+#include <charconv>
 #include <optional>
-#include <ostream>
 #include <sstream>
 #include <string>
+#include <unordered_map>
 #include <utility>
-#include <vector>
-
-#include <unistd.h>
 
 #include "image.h"
 #include "logger.h"
@@ -21,71 +17,23 @@ namespace
 constexpr int DEFAULT_WEIGHT_FALL_OFF = 4;
 constexpr int DEFAULT_MINKOWSKI_EXPONENT = 1;
 
-class program_options
+struct program_options
 {
-        friend std::ostream& operator<<(std::ostream& out,
-                const program_options& opts);
-public:
-    program_options()
-        : k_(DEFAULT_WEIGHT_FALL_OFF, true)
-        , p_(DEFAULT_MINKOWSKI_EXPONENT, true)
-        , wsize_(-1, false)
-        , input_("", false)
-        , output_("")
-    {
-    }
-
-    void k(int k)
-    {
-        k_.first = k;
-        k_.second = true;
-    }
-
-    void p(int p)
-    {
-        p_.first = p;
-        p_.second = true;
-    }
-
-    void wsize(int wsize)
-    {
-        wsize_.first = wsize;
-        wsize_.second = true;
-    }
-
-    void input(std::string input)
-    {
-        input_.first = input;
-        input_.second = true;
-    }
-
-    void output(std::string output)
-    {
-        output_ = output;
-    }
-
-    bool ok() const
-    {
-        return k_.second && p_.second && wsize_.second && input_.second;
-    }
-
-private:
-    std::pair<int, bool> k_;
-    std::pair<int, bool> p_;
-    std::pair<int, bool> wsize_;
-    std::pair<std::string, bool> input_;
-    // optional
-    std::string output_;
+    int k = DEFAULT_WEIGHT_FALL_OFF;     // weight fall-off
+    int p = DEFAULT_MINKOWSKI_EXPONENT;  // Minkowski exponent
+    int w;         // filtering window size
+    std::string i; // input image
+    std::string o; // output image
 };
 
 std::ostream& operator<<(std::ostream& out, const program_options& opts)
 {
     out << "\n";
-    out << "    k = " << opts.k_.first << "\n";
-    out << "    p = " << opts.p_.first << "\n";
-    out << "    w = " << opts.wsize_.first << "\n";
-    out << "    i = " << opts.input_.first << "\n";
-    out << "    o = " << opts.output_;
+    out << "    k = " << opts.k << "\n";
+    out << "    p = " << opts.p << "\n";
+    out << "    w = " << opts.w << "\n";
+    out << "    i = " << opts.i << "\n";
+    out << "    o = " << opts.o;
 
     return out;
 }
@@ -107,48 +55,155 @@ std::string help()
     return ss.str();
 }
 
-// TODO: consider better alternative to std::stoi
-std::optional<program_options> parse_options(int argc, char** argv)
-{
-    LOGV() << "parse_options()";
 
+std::optional<std::string> extract_opt(const std::string& arg,
+        std::size_t eqsgn_pos)
+{
+    if(eqsgn_pos == 0) {
+        LOGE() << "expected an option before =";
+        return std::nullopt;
+    }
+
+    return arg.substr(0, eqsgn_pos);
+}
+
+std::optional<std::string> extract_val(const std::string& arg,
+        std::size_t eqsgn_pos)
+{
+    if(eqsgn_pos + 1 ==  arg.length()) {
+        LOGE() << "exepcted a value after =";
+        return std::nullopt;
+    }
+
+    return arg.substr(eqsgn_pos + 1);
+}
+
+std::optional<std::pair<std::string, std::string>> extract_opt_and_val(
+        const std::string& arg, std::size_t eqsgn_pos)
+{
+    auto opt = extract_opt(arg, eqsgn_pos);
+    auto val = extract_val(arg, eqsgn_pos);
+
+    if(!opt || !val) {
+        return std::nullopt;
+    }
+
+    return std::make_pair(opt.value(), val.value());
+}
+
+
+std::optional<int> convert(const std::string& str)
+{
+    ASSERT(!str.empty(), "trying to convert an empty string");
+
+    int result;
+    auto [match, err] = std::from_chars(
+            str.data(), str.data() + str.size(), result);
+
+    if(err != std::errc()) {
+        return std::nullopt;
+    }
+
+    return result;
+}
+
+std::optional<program_options> convert_opts(
+        const std::unordered_map<std::string, std::string>& opts_map)
+{
     program_options opts;
 
-    int curr_opt;
-    while((curr_opt = getopt(argc, argv, ":k:p:w:i:o:h")) != -1) {
-        switch(curr_opt) {
-        case 'k':
-            opts.k(std::stoi(optarg));
-            break;
-        case 'p':
-            opts.p(std::stoi(optarg));
-            break;
-        case 'w':
-            opts.wsize(std::stoi(optarg));
-            break;
-        case 'i':
-            opts.input(std::string(optarg));
-            break;
-        case 'o':
-            opts.output(std::string(optarg));
-            break;
-        case 'h':
-            LOGI() << help();
-            std::exit(0);
-            break;
-        case ':':
-            LOGE() << "missing value for option -" << static_cast<char>(optopt);
-            break;
-        case '?':
-            LOGE() << "invalid argument -" << optarg;
-            break;
-        default:
-            ASSERT(false, "invalid getopt case");
-            break;
+    if(opts_map.count("k")) {
+        auto k = convert(opts_map.at("k"));
+        if(!k) {
+            LOGE() << "failed to convert value for option k";
+            return std::nullopt;
+        }
+        opts.k = k.value();
+    }
+
+    if(opts_map.count("p")) {
+        auto p = convert(opts_map.at("p"));
+        if(!p) {
+            LOGE() << "failed to convert value for option p";
+            return std::nullopt;
+        }
+        opts.p = p.value();
+    }
+
+    ASSERT(opts_map.count("w"), "missing non optional option");
+    auto w = convert(opts_map.at("w"));
+    if(!w) {
+        LOGE() << "failed to convert value for option w";
+        return std::nullopt;
+    }
+    opts.w = w.value();
+
+    ASSERT(opts_map.count("i"), "missing non optional option");
+    opts.i = opts_map.at("i");
+
+    if(opts_map.count("o")) {
+        opts.o = opts_map.at("o");
+    }
+    else {
+        opts.o = opts.i;
+        opts.o.insert(opts.o.find('.'), "_restored");
+    }
+
+    return opts;
+}
+
+std::optional<program_options> parse_program_opts(int argc, char** argv)
+{
+    bool expected_val = false;
+    std::string last_opt;
+    std::unordered_map<std::string, std::string> opts;
+    for(int i = 1; i < argc; i++) {
+        std::string arg(argv[i]);
+        if(arg[0] == '-') { // either just an opt or opt=val
+            arg = arg.substr(1);
+
+            if(expected_val) {
+                LOGE() << "expected a value after opt " << last_opt;
+                return std::nullopt;
+            }
+
+            std::size_t eqsgn_pos = arg.find('=');
+            if(eqsgn_pos != std::string::npos) {
+                auto opt_and_val = extract_opt_and_val(arg, eqsgn_pos);
+                if(!opt_and_val) {
+                    return std::nullopt;
+                }
+                opts[opt_and_val.value().first] = opt_and_val.value().second;
+            }
+            else { // just an opt
+                auto opt = extract_opt(arg, eqsgn_pos);
+                if(!opt) {
+                    return std::nullopt;
+                }
+                expected_val = !expected_val;
+                last_opt = opt.value();
+            }
+        }
+        else { // just a val
+            if(!expected_val) {
+                LOGE() << "expected an option";
+                return std::nullopt;
+            }
+
+            opts[last_opt] = arg;
+            expected_val = !expected_val;
         }
     }
 
-    return opts.ok() ? std::optional(opts) : std::nullopt;
+    const std::array<std::string, 2> nonopt_opts = {"w", "i"};
+    for(auto opt: nonopt_opts) {
+        if(!opts.count(opt)) {
+            LOGE() << "missing option " << opt;
+            return std::nullopt;
+        }
+    }
+
+    return convert_opts(opts);
 }
 
 } // anonymous
@@ -157,23 +212,15 @@ int main(int argc, char** argv)
 {
     uwmf::logger::filter() = uwmf::logger::log_level::VERBOSE;
 
-    std::optional<program_options> opts;
-    try {
-        opts = parse_options(argc, argv);
-    }
-    catch(const std::exception& error) {
-        LOGE() << error.what();
-        LOGI() << help();
-        return -1;
-    }
-
+    auto opts = parse_program_opts(argc, argv);
     if(!opts) {
         LOGE() << help();
         return -1;
     }
 
-    LOGD() << "parameters in use:";
-    LOGD() << opts.value();
+    LOGI() << "running UWMF with" << opts.value();
+
+    return -1;
 
     std::size_t size_x = 16;
     std::size_t size_y = 19;
