@@ -94,8 +94,6 @@ std::optional<std::pair<std::string, std::string>> extract_opt_and_val(
 
 std::optional<int> convert(const std::string& str)
 {
-    ASSERT(!str.empty(), "trying to convert an empty string");
-
     int result;
     auto [match, err] = std::from_chars(
             str.data(), str.data() + str.size(), result);
