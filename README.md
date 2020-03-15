@@ -5,8 +5,8 @@ This will most likely be a command line tool. I am planning to make a CUDA imple
 
 ### TODO
 * test new option parser
-* add support for MSVC
 * make sure image.h compiles with clang-8
+* make sure to use release builds of zlib and libpng
 
 ### Lincense
 GPLv3. See [LICENSE](https://github.com/cengizkandemir/uwmf/blob/master/LICENSE) for full description.
