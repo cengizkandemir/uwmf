@@ -218,8 +218,6 @@ int main(int argc, char** argv)
 
     LOGI() << "running UWMF with" << opts.value();
 
-    return -1;
-
     std::size_t size_x = 16;
     std::size_t size_y = 19;
     uwmf::monochrome_image img(size_x, size_y);

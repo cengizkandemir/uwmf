@@ -86,7 +86,7 @@ if(MSVC)
   set(COMPILER_OPTIONS
     /Zi
     /permissive-
-    /Wall
+    /WX
     /W4
   )
 else()
