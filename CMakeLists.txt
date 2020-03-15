@@ -21,12 +21,14 @@ set(ZLIB zlib-1.2.11)
 set(ZLIB_DIR ${CMAKE_SOURCE_DIR}/external/${ZLIB})
 set(ZLIB_CMAKE_ARGS
   -D SKIP_INSTALL_ALL=OFF
-  -D CMAKE_INSTALL_PREFIX=${INSTALL_PREFIX})
+  -D CMAKE_INSTALL_PREFIX=${INSTALL_PREFIX}
+)
 ExternalProject_Add(${ZLIB}
   PREFIX ${ZLIB}
   DOWNLOAD_COMMAND ""
   SOURCE_DIR ${ZLIB_DIR}
-  CMAKE_ARGS ${ZLIB_CMAKE_ARGS})
+  CMAKE_ARGS ${ZLIB_CMAKE_ARGS}
+)
 
 
 set(LIBPNG libpng-1.6.37)
@@ -38,12 +40,14 @@ set(LIBPNG_CMAKE_ARGS
   -D ZLIB_CONF_DIR=${DEP_INTERM_INCLUDE_DIR}
   -D CMAKE_PROJECT_libpng_INCLUDE=${CMAKE_SOURCE_DIR}/libpng.cmake
   -D CMAKE_INSTALL_PREFIX=${INSTALL_PREFIX}
-  -D CMAKE_INSTALL_LIBDIR=${INSTALL_PREFIX}/lib)
+  -D CMAKE_INSTALL_LIBDIR=${INSTALL_PREFIX}/lib
+)
 ExternalProject_Add(${LIBPNG}
   PREFIX ${LIBPNG}
   DOWNLOAD_COMMAND ""
   SOURCE_DIR ${LIBPNG_DIR}
-  CMAKE_ARGS ${LIBPNG_CMAKE_ARGS})
+  CMAKE_ARGS ${LIBPNG_CMAKE_ARGS}
+)
 
 # not necessarily needed for static linkage
 ExternalProject_Add_StepDependencies(${LIBPNG} build ${ZLIB})
@@ -62,7 +66,8 @@ set(SOURCES
   src/png_image.cpp
   src/math_utils.h
   src/math_utils.cpp
-  src/main.cpp)
+  src/main.cpp
+)
 
 add_executable(uwmf ${SOURCES})
 
@@ -74,14 +79,16 @@ target_compile_features(uwmf PRIVATE cxx_std_17)
 
 set(LIBRARIES
   ${LIBPNG_LIBRARY}
-  ${ZLIB_LIBRARY})
+  ${ZLIB_LIBRARY}
+)
 
 if(MSVC)
   set(COMPILER_OPTIONS
     /Zi
     /permissive-
     /Wall
-    /W4)
+    /W4
+  )
 else()
   set(COMPILER_OPTIONS
     -Wall
@@ -92,10 +99,12 @@ else()
     -pedantic-errors
     -ggdb
     -g3
-    -fsanitize=address)
-   set(LIBRARIES
-     ${LIBRARIES}
-     asan)
+    -fsanitize=address
+  )
+  set(LIBRARIES
+    ${LIBRARIES}
+    asan
+  )
 endif()
 
 target_compile_options(uwmf PRIVATE ${COMPILER_OPTIONS})
