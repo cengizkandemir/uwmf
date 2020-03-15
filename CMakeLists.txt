@@ -3,13 +3,12 @@ cmake_minimum_required(VERSION 3.0)
 project(uwmf)
 
 # TODO: use only release libraries for zlib and libpng
-set(ZLIB_LIBRARY_NAME "zlib")
 set(LIBPGN_LIBRARY_NAME "libpng16")
 if(MSVC)
-  set(ZLIB_LIBRARY_NAME "${ZLIB_LIBRARY_NAME}staticd.lib")
+  set(ZLIB_LIBRARY_NAME "zlibstaticd.lib")
   set(LIBPGN_LIBRARY_NAME "${LIBPGN_LIBRARY_NAME}_staticd.lib")
 else()
-  set(ZLIB_LIBRARY_NAME "${ZLIB_LIBRARY_NAME}.a")
+  set(ZLIB_LIBRARY_NAME "libz.a")
   set(LIBPGN_LIBRARY_NAME "${LIBPGN_LIBRARY_NAME}.a")
 endif()
 
