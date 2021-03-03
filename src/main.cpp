@@ -55,7 +55,6 @@ std::string help()
     return ss.str();
 }
 
-
 std::optional<std::string> extract_opt(const std::string& arg,
         std::size_t eqsgn_pos)
 {
@@ -90,7 +89,6 @@ std::optional<std::pair<std::string, std::string>> extract_opt_and_val(
 
     return std::make_pair(opt.value(), val.value());
 }
-
 
 std::optional<int> convert(const std::string& str)
 {
@@ -218,67 +216,62 @@ int main(int argc, char** argv)
 
     LOGI() << "running UWMF with" << opts.value();
 
-    std::size_t size_x = 16;
-    std::size_t size_y = 19;
-    uwmf::monochrome_image img(size_x, size_y);
-    uwmf::monochrome_image img2(size_x, size_y);
-    uwmf::monochrome_image img3(size_x, size_y);
-    for(std::size_t y = 0; y < size_y; y++) {
-        for(std::size_t x = 0; x < size_x; x++) {
-            img(x, y) = 55;
-            img2(x, y) = 66;
-            img3(x, y) = 77;
+    uwmf::monochrome_image img(4, 4);
+    uwmf::monochrome_image img2(4, 4);
+    const uwmf::monochrome_image& img_ref = img;
+    const uwmf::monochrome_image& img_ref2 = img2;
+
+    for(int i = 0; i < 4; i++) {
+        for(int j = 0; j < 4; j++) {
+            img(i,j) = 1;
+            img2(i,j) = 2;
         }
     }
 
-    LOGI() << img;
-
-    for(const auto [x, y, val]: img) {
-        LOGI() << "px1 -> " << static_cast<int>(val);
+    for(auto [x, y, val]: img) {
+        (void)x;
+        (void)y;
+        LOGI() << "px1 -> " << static_cast<int>(*val);
     }
 
-    const auto& img_ref = img;
-    const auto& img_ref2 = img;
-
-    for(const auto [x, y, val]: img_ref) {
-        LOGI() << "px1 -> " << static_cast<int>(val);
+    for(auto [x, y, val]: img) {
+        (void)x;
+        (void)y;
+        *val = 11;
     }
 
-    for(const auto [first, second]: uwmf::make_image_zip(img_ref, img_ref2)) {
-        LOGI() << "px1 -> " << static_cast<int>(first.value);
+    for(auto [x, y, val]: img_ref) {
+        (void)x;
+        (void)y;
+        LOGI() << "px1 -> " << static_cast<int>(*val);
     }
 
-    for(const auto& [px1, px2, px3]:
-                uwmf::make_image_zip(img, img2, img3)) {
-        LOGI() << "px1 -> " << static_cast<int>(px1.value);
-        LOGI() << "px2 -> " << static_cast<int>(px2.value);
-        LOGI() << "px3 -> " << static_cast<int>(px3.value);
+    for(auto [px1, px2]: uwmf::make_image_zip(img, img2))
+    {
+        *(px1.value) = 55;
+        *(px2.value) = 66;
     }
 
-    for(auto [px1, px2, px3]:
-                uwmf::make_image_zip(img, img2, img3)) {
-        LOGI() << "px1 -> " << static_cast<int>(px1.value);
-        LOGI() << "px2 -> " << static_cast<int>(px2.value);
-        LOGI() << "px3 -> " << static_cast<int>(px3.value);
+    for(auto [px1, px2]: uwmf::make_image_zip(img_ref, img_ref2))
+    {
+        LOGI() << "px1 -> " << static_cast<int>(*(px1.value));
+        LOGI() << "px2 -> " << static_cast<int>(*(px2.value));
     }
 
-    LOGI() << "mse: " << uwmf::mse(img, img2);
-    LOGI() << "psnr: " << uwmf::psnr(img, img2);
+    for(auto [px1, px2]: uwmf::make_image_zip(img, img2))
+    {
+        *(px1.value) = 11;
+        *(px2.value) = 22;
+    }
 
-    uwmf::monochrome_png_image png_img("../images/lena.png");
+    const uwmf::monochrome_image const_img = img;
+    const uwmf::monochrome_image const_img2 = img2;
 
-    auto first = png_img.raw_data();
-    LOGD() << "data: " << png_img.raw_data().size() << '\n';
-    png_img.write("../images/lena_2.png");
+    for(auto [px1, px2]: uwmf::make_image_zip(const_img, const_img2))
+    {
+        LOGI() << "px1 -> " << static_cast<int>(*(px1.value));
+        LOGI() << "px2 -> " << static_cast<int>(*(px2.value));
+    }
 
-    uwmf::monochrome_png_image png_img2("../images/lena_2.png");
-    auto second = png_img2.raw_data();
-
-    LOGD() << "equal? " << (first == second);
-
-    uwmf::monochrome_image img4(png_img.raw_data(), png_img.width(),
-            png_img.height());
-
-    LOGD() << "width: " << img4.width() << ", height: " << img4.height();
     return 0;
 }

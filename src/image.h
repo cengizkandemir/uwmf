@@ -17,8 +17,17 @@ namespace uwmf
 template<typename PixelValueType>
 class basic_image
 {
+    using value_iterator = typename std::vector<PixelValueType>::iterator;
+    using const_value_iterator =
+            typename std::vector<PixelValueType>::const_iterator;
+
 public:
     using value_type = PixelValueType;
+
+    template<typename IteratorType>
+    class image_iterator;
+    using iterator = image_iterator<value_iterator>;
+    using const_iterator = image_iterator<const_value_iterator>;
 
     template<typename IteratorType>
     class image_iterator
@@ -28,7 +37,7 @@ public:
         {
             std::size_t x;
             std::size_t y;
-            PixelValueType value;
+            IteratorType value;
         };
 
         image_iterator(IteratorType iter, std::size_t stride)
@@ -47,7 +56,7 @@ public:
         pixel operator*() const
         {
             auto diff = curr_ - start_;
-            return {diff % stride_, diff / stride_, *curr_};
+            return {diff % stride_, diff / stride_, curr_};
         }
 
         bool operator==(const image_iterator& other) const
@@ -109,22 +118,22 @@ public:
 
     auto begin()
     {
-        return image_iterator(std::begin(buffer_), width_);
+        return iterator(std::begin(buffer_), width_);
     }
 
     auto begin() const
     {
-        return image_iterator(std::begin(buffer_), width_);
+        return const_iterator(std::begin(buffer_), width_);
     }
 
     auto end()
     {
-        return image_iterator(std::end(buffer_), width_);
+        return iterator(std::end(buffer_), width_);
     }
 
     auto end() const
     {
-        return image_iterator(std::end(buffer_), width_);
+        return const_iterator(std::end(buffer_), width_);
     }
 
     std::size_t width() const
@@ -159,7 +168,7 @@ std::ostream& operator<<(std::ostream& out,
 
 using monochrome_image = basic_image<char>;
 
-template<typename... ImageType>
+template<typename... ImageTypes>
 class image_zip_iterator
 {
     template <typename... Args>
@@ -172,19 +181,30 @@ class image_zip_iterator
                }(args...);
     }
 
+    using iterator_tuple =
+            std::tuple<decltype(std::declval<ImageTypes>().begin())...>;
+
+    static constexpr auto begin_wrapper = [] (auto&& param)
+    {
+        return std::begin(std::forward<decltype(param)>(param));
+    };
+
+    static constexpr auto end_wrapper = [] (auto&& param)
+    {
+        return std::end(std::forward<decltype(param)>(param));
+    };
+
 public:
-    template<typename... IteratorType>
+    template<typename IteratorTupleType>
     class zip_iterator
     {
-        using pixel_tuple = std::tuple<typename IteratorType::pixel...>;
     public:
-
-        zip_iterator(IteratorType&&... iters)
-            : iters_(std::make_tuple(std::forward<IteratorType>(iters)...))
+        zip_iterator(IteratorTupleType iters)
+            : iters_(iters)
         {
         }
 
-        pixel_tuple operator*() const
+        auto operator*() const
         {
             return std::apply(
                     [] (auto&&... iters)
@@ -214,7 +234,7 @@ public:
         }
 
     private:
-        std::tuple<IteratorType...> iters_;
+        IteratorTupleType iters_;
     };
 
     template<typename... Args>
@@ -231,49 +251,44 @@ public:
 
     auto begin()
     {
-        return std::apply(
-                [] (auto&&... images)
-                {
-                    // TODO: forward the pack?
-                    return zip_iterator(std::begin(images)...);
-                }, images_);
+         return apply_impl<iterator_tuple>(begin_wrapper);
     }
 
     auto begin() const
     {
-        return std::apply(
-                [] (auto&&... images)
-                {
-                    return zip_iterator(std::begin(images)...);
-                }, images_);
+        return apply_impl<iterator_tuple>(begin_wrapper);
     }
 
     auto end()
     {
-        return std::apply(
-                [] (auto&&... images)
-                {
-                    return zip_iterator(std::end(images)...);
-                }, images_);
+        return apply_impl<iterator_tuple>(end_wrapper);
     }
 
     auto end() const
     {
-        return std::apply(
-                [] (auto&&... images)
-                {
-                    return zip_iterator(std::end(images)...);
-                }, images_);
+        return apply_impl<iterator_tuple>(end_wrapper);
     }
 
 private:
-    const std::tuple<ImageType...> images_;
+    const std::tuple<ImageTypes...> images_;
+
+    template<typename IteratorType, typename Accessor>
+    auto apply_impl(Accessor accessor) const
+    {
+        return std::apply(
+                [accessor] (auto&&... images)
+                {
+                    return zip_iterator<IteratorType>(
+                            std::make_tuple(accessor(images)...));
+                }, images_);
+    }
 };
 
-template<typename... ImageType>
-inline auto make_image_zip(ImageType&&... images)
+template<typename... ImageTypes>
+auto make_image_zip(ImageTypes&&... images)
 {
-    return image_zip_iterator<ImageType...>(std::forward<ImageType>(images)...);
+    return image_zip_iterator<ImageTypes...>(
+            std::forward<ImageTypes>(images)...);
 }
 
 } // uwmf
