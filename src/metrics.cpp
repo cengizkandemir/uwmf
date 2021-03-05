@@ -13,4 +13,10 @@ float psnr(const monochrome_image& original, const monochrome_image& restored)
     return 10 * std::log10((max * max) / mse(original, restored));
 }
 
+float ief(const monochrome_image& original, const monochrome_image& restored,
+        const monochrome_image& noisy)
+{
+    return se(noisy, original) / se(restored, original);
+}
+
 } // uwmf

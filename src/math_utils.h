@@ -7,6 +7,7 @@
 namespace uwmf
 {
 
+float se(const monochrome_image& image1, const monochrome_image& image2);
 float mse(const monochrome_image& image1, const monochrome_image& image2);
 
 } // uwmf
