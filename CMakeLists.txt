@@ -66,6 +66,8 @@ set(SOURCES
   src/png_image.cpp
   src/math_utils.h
   src/math_utils.cpp
+  src/metrics.h
+  src/metrics.cpp
   src/main.cpp
 )
 
