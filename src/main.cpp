@@ -273,5 +273,12 @@ int main(int argc, char** argv)
         LOGI() << "px2 -> " << static_cast<int>(*(px2.value));
     }
 
+    uwmf::random real(0.2, 0.4);
+    uwmf::random integral(0, 100);
+    for(int i = 0; i < 100; i++) {
+        LOGI() << "num -> " << real.generate();
+        LOGI() << "num -> " << integral.generate();
+    }
+
     return 0;
 }
