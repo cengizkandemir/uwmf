@@ -7,6 +7,7 @@
 #include <utility>
 
 #include "image.h"
+#include "image_utils.h"
 #include "logger.h"
 #include "math_utils.h"
 #include "png_image.h"
@@ -279,6 +280,13 @@ int main(int argc, char** argv)
         LOGI() << "num -> " << real.generate();
         LOGI() << "num -> " << integral.generate();
     }
+
+    auto png = *uwmf::read_png_image("../images/lena.png");
+    uwmf::monochrome_image image(png.buffer, png.width, png.height);
+    auto corrupt_image = fvin(image, 0.1);
+    uwmf::write_png_image(corrupt_image.data(),
+            corrupt_image.width(), corrupt_image.height(),
+            "../images/lena_corrupted.png");
 
     return 0;
 }

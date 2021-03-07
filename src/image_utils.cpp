@@ -37,4 +37,20 @@ double ssim(const monochrome_image& original, const monochrome_image& restored)
             / ((mo * mo + mr * mr + c1) * (vo * vo + vr * vr + c2));
 }
 
+monochrome_image fvin(monochrome_image original, const double density)
+{
+    random<double> noise(0, 1);
+    random<int> type(0, 1);
+
+    for(const auto& [x, y, pixel] : original) {
+        if(noise.generate() < density) {
+            original(x, y) = type.generate() == 0
+                    ? std::numeric_limits<monochrome_image::value_type>::max()
+                    : std::numeric_limits<monochrome_image::value_type>::min();
+        }
+    }
+
+    return original;
+}
+
 } // uwmf

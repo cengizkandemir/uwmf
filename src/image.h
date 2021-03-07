@@ -104,6 +104,11 @@ public:
     {
     }
 
+    const std::vector<PixelValueType>& data() const
+    {
+        return buffer_;
+    }
+
     PixelValueType& operator()(std::size_t x, std::size_t y)
     {
         ASSERT(x + (width_ * y) < buffer_.size(), "indices out ouf bounds");
@@ -166,7 +171,7 @@ std::ostream& operator<<(std::ostream& out,
     return out;
 }
 
-using monochrome_image = basic_image<char>;
+using monochrome_image = basic_image<unsigned char>;
 
 template<typename... ImageTypes>
 class image_zip_iterator
