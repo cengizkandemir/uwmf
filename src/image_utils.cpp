@@ -46,7 +46,7 @@ monochrome_image fvin(monochrome_image original, const double density)
 
     for(const auto& [x, y, pixel] : original) {
         if(noise.generate() < density) {
-            original(x, y) = type.generate() == 0
+            *pixel = type.generate() == 0
                     ? std::numeric_limits<monochrome_image::value_type>::max()
                     : std::numeric_limits<monochrome_image::value_type>::min();
         }
