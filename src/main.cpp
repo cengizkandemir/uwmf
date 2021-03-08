@@ -143,7 +143,12 @@ std::optional<program_options> convert_opts(
     }
     else {
         opts.o = opts.i;
-        opts.o.insert(opts.o.find('.'), "_restored");
+        std::size_t dot_pos = opts.o.find('.');
+        if(dot_pos == std::string::npos) {
+            LOGE() << "missing file extension";
+            return std::nullopt;
+        }
+        opts.o.insert(dot_pos, "_restored");
     }
 
     return opts;
