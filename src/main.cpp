@@ -1,4 +1,5 @@
-#include <array>
+#include <algorithm>
+#include <cctype>
 #include <charconv>
 #include <optional>
 #include <sstream>
@@ -18,21 +19,39 @@ namespace
 constexpr int DEFAULT_WEIGHT_FALL_OFF = 4;
 constexpr int DEFAULT_MINKOWSKI_EXPONENT = 1;
 
+enum class mode
+{
+    RESTORE,
+    CORRUPT,
+};
+
 struct program_options
 {
-    int k = DEFAULT_WEIGHT_FALL_OFF;     // weight fall-off
-    int p = DEFAULT_MINKOWSKI_EXPONENT;  // Minkowski exponent
-    int w;         // filtering window size
-    std::string i; // input image
-    std::string o; // output image
+    mode m = mode::RESTORE;             // mode
+    int k = DEFAULT_WEIGHT_FALL_OFF;    // weight fall-off
+    int p = DEFAULT_MINKOWSKI_EXPONENT; // Minkowski exponent
+    int w;                              // filtering window size
+    double d;                           // corruption density
+    std::string i;                      // input image
+    std::string o;                      // output image
 };
 
 std::ostream& operator<<(std::ostream& out, const program_options& opts)
 {
     out << "\n";
-    out << "    k = " << opts.k << "\n";
-    out << "    p = " << opts.p << "\n";
-    out << "    w = " << opts.w << "\n";
+
+    switch(opts.m) {
+    case mode::RESTORE:
+        out << "    k = " << opts.k << "\n";
+        out << "    p = " << opts.p << "\n";
+        out << "    w = " << opts.w << "\n";
+        break;
+    case mode::CORRUPT:
+        out << "    d = " << opts.d << "\n";
+        break;
+    default: ASSERT(false, "invalid operation"); break;
+    }
+
     out << "    i = " << opts.i << "\n";
     out << "    o = " << opts.o;
 
@@ -43,11 +62,13 @@ std::string help()
 {
     std::stringstream ss;
     ss << "options:\n"
-            << "    -k: weight fall-off (default: "
+            << "    -m: mode, [c]orrupt/[r]estore (default: restore)\n"
+            << "    -k: weight fall-off, restore mode only (default: "
             << DEFAULT_WEIGHT_FALL_OFF << ")\n"
-            << "    -p: Minkowski exponent (default: "
+            << "    -p: Minkowski exponent, restore mode only (default: "
             << DEFAULT_MINKOWSKI_EXPONENT << ")\n"
-            << "    -w: filtering window size\n"
+            << "    -w: filtering window size, restore mode only\n"
+            << "    -d: corruption density, corrupt mode only\n"
             << "    -i: input png image\n"
             << "    -o: optional output file\n"
             << "        if omitted, input file name with \"_restored\" "
@@ -91,9 +112,10 @@ std::optional<std::pair<std::string, std::string>> extract_opt_and_val(
     return std::make_pair(opt.value(), val.value());
 }
 
-std::optional<int> convert(const std::string& str)
+template<typename T>
+std::optional<T> to_numeric(const std::string& str)
 {
-    int result;
+    T result;
     auto [match, err] = std::from_chars(
             str.data(), str.data() + str.size(), result);
 
@@ -104,13 +126,50 @@ std::optional<int> convert(const std::string& str)
     return result;
 }
 
+template<>
+std::optional<double> to_numeric<double>(const std::string& str)
+{
+    double value;
+    try {
+        value = std::stod(str);
+    }
+    catch(...) {
+        return std::nullopt;
+    }
+    return value;
+}
+
+std::optional<mode> to_mode(std::string str)
+{
+    std::transform(str.begin(), str.end(), str.begin(),
+            [] (unsigned char ch) { return std::tolower(ch); });
+
+    if(str == "r" || str == "restore") {
+        return mode::RESTORE;
+    }
+    else if(str == "c" || str == "corrupt") {
+        return mode::CORRUPT;
+    }
+
+    return std::nullopt;
+}
+
 std::optional<program_options> convert_opts(
         const std::unordered_map<std::string, std::string>& opts_map)
 {
     program_options opts;
 
+    if(opts_map.count("m")) {
+        auto m = to_mode(opts_map.at("m"));
+        if(!m) {
+            LOGE() << "failed to convert value for option m";
+            return std::nullopt;
+        }
+        opts.m = m.value();
+    }
+
     if(opts_map.count("k")) {
-        auto k = convert(opts_map.at("k"));
+        auto k = to_numeric<int>(opts_map.at("k"));
         if(!k) {
             LOGE() << "failed to convert value for option k";
             return std::nullopt;
@@ -119,7 +178,7 @@ std::optional<program_options> convert_opts(
     }
 
     if(opts_map.count("p")) {
-        auto p = convert(opts_map.at("p"));
+        auto p = to_numeric<int>(opts_map.at("p"));
         if(!p) {
             LOGE() << "failed to convert value for option p";
             return std::nullopt;
@@ -127,13 +186,24 @@ std::optional<program_options> convert_opts(
         opts.p = p.value();
     }
 
-    ASSERT(opts_map.count("w"), "missing non optional option");
-    auto w = convert(opts_map.at("w"));
-    if(!w) {
-        LOGE() << "failed to convert value for option w";
-        return std::nullopt;
+    if(opts.m == mode::RESTORE) {
+        ASSERT(opts_map.count("w"), "missing non optional option");
+        auto w = to_numeric<int>(opts_map.at("w"));
+        if(!w) {
+            LOGE() << "failed to convert value for option w";
+            return std::nullopt;
+        }
+        opts.w = w.value();
     }
-    opts.w = w.value();
+    else if(opts.m == mode::CORRUPT) {
+        ASSERT(opts_map.count("d"), "missing non optional option");
+        auto d = to_numeric<double>(opts_map.at("d"));
+        if(!d) {
+            LOGE() << "failed to convert value for option d";
+            return std::nullopt;
+        }
+        opts.d = d.value();
+    }
 
     ASSERT(opts_map.count("i"), "missing non optional option");
     opts.i = opts_map.at("i");
@@ -143,15 +213,34 @@ std::optional<program_options> convert_opts(
     }
     else {
         opts.o = opts.i;
-        std::size_t dot_pos = opts.o.find('.');
+        std::size_t dot_pos = opts.o.find_last_of('.');
         if(dot_pos == std::string::npos) {
             LOGE() << "missing file extension";
             return std::nullopt;
         }
-        opts.o.insert(dot_pos, "_restored");
+        opts.o.insert(dot_pos,
+                opts.m == mode::RESTORE ? "_restored" : "_corrupted");
     }
 
     return opts;
+}
+
+std::optional<std::string> find_missing_opts(
+        const std::unordered_map<std::string, std::string>& curr_opts)
+{
+    const bool corrupt =
+            curr_opts.count("m") && to_mode(curr_opts.at("m")) == mode::CORRUPT;
+    const int opt_index = corrupt ? 1 : 0;
+    const std::vector<std::vector<std::string>> nonopt_opts
+            = {{"w", "i"}, {"d", "i"}};
+
+    for(auto opt: nonopt_opts[opt_index]) {
+        if(!curr_opts.count(opt)) {
+            return opt;
+        }
+    }
+
+    return std::nullopt;
 }
 
 std::optional<program_options> parse_program_opts(int argc, char** argv)
@@ -159,6 +248,7 @@ std::optional<program_options> parse_program_opts(int argc, char** argv)
     bool expected_val = false;
     std::string last_opt;
     std::unordered_map<std::string, std::string> opts;
+
     for(int i = 1; i < argc; i++) {
         std::string arg(argv[i]);
         if(arg[0] == '-') { // either just an opt or opt=val
@@ -197,12 +287,10 @@ std::optional<program_options> parse_program_opts(int argc, char** argv)
         }
     }
 
-    const std::array<std::string, 2> nonopt_opts = {"w", "i"};
-    for(auto opt: nonopt_opts) {
-        if(!opts.count(opt)) {
-            LOGE() << "missing option " << opt;
-            return std::nullopt;
-        }
+    auto missing_opt = find_missing_opts(opts);
+    if(missing_opt) {
+        LOGE() << "missing option " << *missing_opt;
+        return std::nullopt;
     }
 
     return convert_opts(opts);
@@ -214,84 +302,22 @@ int main(int argc, char** argv)
 {
     uwmf::logger::filter() = uwmf::logger::log_level::VERBOSE;
 
-    auto opts = parse_program_opts(argc, argv);
-    if(!opts) {
+    auto result = parse_program_opts(argc, argv);
+    if(!result) {
         LOGE() << help();
         return -1;
     }
 
-    LOGI() << "running UWMF with" << opts.value();
+    program_options opts = result.value();
+    LOGI() << "running UWMF with" << opts;
 
-    uwmf::monochrome_image img(4, 4);
-    uwmf::monochrome_image img2(4, 4);
-    const uwmf::monochrome_image& img_ref = img;
-    const uwmf::monochrome_image& img_ref2 = img2;
-
-    for(int i = 0; i < 4; i++) {
-        for(int j = 0; j < 4; j++) {
-            img(i,j) = 1;
-            img2(i,j) = 2;
-        }
+    if(opts.m == mode::CORRUPT) {
+        auto png = *uwmf::read_png_image(opts.i);
+        uwmf::monochrome_image image(png.buffer, png.width, png.height);
+        auto corrupt_image = fvin(image, opts.d);
+        uwmf::write_png_image(corrupt_image.data(),
+                corrupt_image.width(), corrupt_image.height(), opts.o);
     }
-
-    for(auto [x, y, val]: img) {
-        (void)x;
-        (void)y;
-        LOGI() << "px1 -> " << static_cast<int>(*val);
-    }
-
-    for(auto [x, y, val]: img) {
-        (void)x;
-        (void)y;
-        *val = 11;
-    }
-
-    for(auto [x, y, val]: img_ref) {
-        (void)x;
-        (void)y;
-        LOGI() << "px1 -> " << static_cast<int>(*val);
-    }
-
-    for(auto [px1, px2]: uwmf::make_image_zip(img, img2))
-    {
-        *(px1.value) = 55;
-        *(px2.value) = 66;
-    }
-
-    for(auto [px1, px2]: uwmf::make_image_zip(img_ref, img_ref2))
-    {
-        LOGI() << "px1 -> " << static_cast<int>(*(px1.value));
-        LOGI() << "px2 -> " << static_cast<int>(*(px2.value));
-    }
-
-    for(auto [px1, px2]: uwmf::make_image_zip(img, img2))
-    {
-        *(px1.value) = 11;
-        *(px2.value) = 22;
-    }
-
-    const uwmf::monochrome_image const_img = img;
-    const uwmf::monochrome_image const_img2 = img2;
-
-    for(auto [px1, px2]: uwmf::make_image_zip(const_img, const_img2))
-    {
-        LOGI() << "px1 -> " << static_cast<int>(*(px1.value));
-        LOGI() << "px2 -> " << static_cast<int>(*(px2.value));
-    }
-
-    uwmf::random real(0.2, 0.4);
-    uwmf::random integral(0, 100);
-    for(int i = 0; i < 100; i++) {
-        LOGI() << "num -> " << real.generate();
-        LOGI() << "num -> " << integral.generate();
-    }
-
-    auto png = *uwmf::read_png_image("../images/lena.png");
-    uwmf::monochrome_image image(png.buffer, png.width, png.height);
-    auto corrupt_image = fvin(image, 0.1);
-    uwmf::write_png_image(corrupt_image.data(),
-            corrupt_image.width(), corrupt_image.height(),
-            "../images/lena_corrupted.png");
 
     return 0;
 }
