@@ -319,5 +319,23 @@ int main(int argc, char** argv)
                 corrupt_image.width(), corrupt_image.height(), opts.o);
     }
 
+    auto weights = uwmf::gen_minkowski_weights(1, 1);
+
+    for(auto weight: weights) {
+        LOGD() << weight;
+    }
+
+    int k = 4;
+    std::transform(weights.begin(), weights.end(), weights.begin(),
+            [k] (double weight)
+            {
+                int exp = uwmf::is_zero(weight) ? 1 : k;
+                return std::pow(weight, exp);
+            });
+
+    for(auto weight: weights) {
+        LOGD() << weight;
+    }
+
     return 0;
 }

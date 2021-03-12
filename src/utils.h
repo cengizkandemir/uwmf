@@ -16,6 +16,16 @@ namespace uwmf
 {
 
 template<typename ValueType>
+struct basic_point2d
+{
+    ValueType x;
+    ValueType y;
+};
+
+using point2d = basic_point2d<double>;
+using discrete_point2d = basic_point2d<int>;
+
+template<typename ValueType>
 class random
 {
     template<typename... Args>
