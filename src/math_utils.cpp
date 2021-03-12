@@ -26,11 +26,6 @@ double variance(const monochrome_image& image, const double m)
     return sum / (image.width() * image.height());
 }
 
-double variance(const monochrome_image& image)
-{
-    return variance(image, mean(image));
-}
-
 double covariance(const monochrome_image& image1, const double v1,
         const monochrome_image& image2, const double v2)
 {
@@ -60,11 +55,6 @@ double se(const monochrome_image& image1, const monochrome_image& image2)
     }
 
     return sum;
-}
-
-double mse(const monochrome_image& image1, const monochrome_image& image2)
-{
-    return se(image1, image2) / (image1.width() * image1.height());
 }
 
 double minkowski_distance(const discrete_point2d& p1,

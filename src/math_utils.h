@@ -18,13 +18,23 @@ inline bool is_zero(double value)
 
 double mean(const monochrome_image& image);
 double variance(const monochrome_image& image, const double m);
-double variance(const monochrome_image& image);
+
+inline double variance(const monochrome_image& image)
+{
+    return variance(image, mean(image));
+}
+
 double covariance(const monochrome_image& image1,
         const monochrome_image& image2);
 double covariance(const monochrome_image& image1, const double v1,
         const monochrome_image& image2, const double v2);
 double se(const monochrome_image& image1, const monochrome_image& image2);
-double mse(const monochrome_image& image1, const monochrome_image& image2);
+
+inline double mse(const monochrome_image& image1,
+        const monochrome_image& image2)
+{
+    return se(image1, image2) / (image1.width() * image1.height());
+}
 
 double minkowski_distance(const discrete_point2d& p1,
         const discrete_point2d& p2, const int p);
