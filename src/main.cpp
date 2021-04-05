@@ -86,7 +86,10 @@ std::ostream& operator<<(std::ostream& out, const program_options& opts)
     }
 
     out << "    i = " << opts.i << "\n";
-    out << "    o = " << opts.o;
+
+    if(opts.m != mode::SIMULATION) {
+        out << "    o = " << opts.o;
+    }
 
     return out;
 }
