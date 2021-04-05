@@ -172,6 +172,7 @@ int main(int argc, char** argv)
     uwmf::logger::filter() = uwmf::logger::log_level::VERBOSE;
 
     cxxopts::Options opts("uwmf");
+    opts.custom_help(help());
 
     opts.add_options()
             (
@@ -227,7 +228,7 @@ int main(int argc, char** argv)
 
         if(parse_results.count("help")
                 || parse_results.arguments().size() == 0) {
-            LOGI() << help();
+            LOGI() << opts.help();
             return 0;
         }
 
