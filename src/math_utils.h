@@ -26,8 +26,8 @@ inline double variance(const monochrome_image& image)
 
 double covariance(const monochrome_image& image1,
         const monochrome_image& image2);
-double covariance(const monochrome_image& image1, const double v1,
-        const monochrome_image& image2, const double v2);
+double covariance(const monochrome_image& image1, const double avg1,
+        const monochrome_image& image2, const double avg2);
 double se(const monochrome_image& image1, const monochrome_image& image2);
 
 inline double mse(const monochrome_image& image1,
@@ -42,6 +42,6 @@ double minkowski_distance(const discrete_point2d& p1,
 // calculates weights based on inverse Minkowski Distance
 // p = 1 -> Manhattan Distance
 // p = 2 -> Euclidean Distance
-std::vector<double> gen_minkowski_weights(const int w, const int p);
+std::vector<double> gen_minkowski_weights(const int w, const int p, const int k);
 
 } // uwmf

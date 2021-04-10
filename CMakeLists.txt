@@ -68,11 +68,15 @@ set(SOURCES
   src/math_utils.cpp
   src/image_utils.h
   src/image_utils.cpp
+  src/uwmf.h
+  src/uwmf.cpp
   src/main.cpp
 )
 
 add_executable(uwmf ${SOURCES})
-
+add_custom_command(TARGET uwmf
+  POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:uwmf> ${CMAKE_SOURCE_DIR})
 add_dependencies(uwmf ${ZLIB} ${LIBPNG})
 
 target_include_directories(uwmf PRIVATE ${DEP_INTERM_INCLUDE_DIR})
@@ -99,18 +103,17 @@ else()
     -Wshadow
     -Wpedantic
     -pedantic-errors
-    -ggdb
-    -g3
-    -fsanitize=address
+    -O2
+    #-ggdb
+    #-g3
+    #-fsanitize=address
   )
   set(LIBRARIES
     ${LIBRARIES}
-    asan
+    #asan
   )
 endif()
 
 target_compile_options(uwmf PRIVATE ${COMPILER_OPTIONS})
 
 target_link_libraries(uwmf ${LIBRARIES})
-
-install(TARGETS uwmf RUNTIME DESTINATION bin)

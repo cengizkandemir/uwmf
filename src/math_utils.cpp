@@ -26,13 +26,13 @@ double variance(const monochrome_image& image, const double m)
     return sum / (image.width() * image.height());
 }
 
-double covariance(const monochrome_image& image1, const double v1,
-        const monochrome_image& image2, const double v2)
+double covariance(const monochrome_image& image1, const double avg1,
+        const monochrome_image& image2, const double avg2)
 {
     double sum = 0;
 
     for(const auto& [px1, px2]: make_image_zip(image1, image2)) {
-        sum += (*px1.value * *px2.value) - (v1 - v2);
+        sum += (*px1.value - avg1) * (*px2.value - avg2);
     }
 
     return sum / (image1.width() * image1.height());
@@ -40,9 +40,9 @@ double covariance(const monochrome_image& image1, const double v1,
 
 double covariance(const monochrome_image& image1, const monochrome_image& image2)
 {
-    const double v1 = variance(image1, mean(image1));
-    const double v2 = variance(image2, mean(image2));
-    return covariance(image1, v1, image2, v2);
+    const double avg1 = mean(image1);
+    const double avg2 = mean(image2);
+    return covariance(image1, avg1, image2, avg2);
 }
 
 double se(const monochrome_image& image1, const monochrome_image& image2)
@@ -67,7 +67,7 @@ double minkowski_distance(const discrete_point2d& p1,
     return std::pow(d1 + d2, 1 / p);
 }
 
-std::vector<double> gen_minkowski_weights(const int w, const int p)
+std::vector<double> gen_minkowski_weights(const int w, const int p, const int k)
 {
     const int edge_length = w * 2 + 1;
     const discrete_point2d center = {w, w};
@@ -77,7 +77,7 @@ std::vector<double> gen_minkowski_weights(const int w, const int p)
         int x = i % edge_length;
         int y = i / edge_length;
         double distance = minkowski_distance(center, {x, y}, p);
-        weights[i] = is_zero(distance) ? 0 : 1 / distance;
+        weights[i] = is_zero(distance) ? 0 : 1 / std::pow(distance, k);
     }
 
     return weights;

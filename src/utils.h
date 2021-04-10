@@ -3,6 +3,7 @@
 #pragma once
 
 #include <cassert>
+#include <ostream>
 #include <random>
 #include <type_traits>
 
@@ -22,11 +23,37 @@ struct basic_point2d
     ValueType y;
 };
 
+template<typename ValueType>
+std::ostream& operator<<(std::ostream& out,
+        const basic_point2d<ValueType>& point)
+{
+    out << point.x << ", " << point.y;
+    return out;
+}
+
 using point2d = basic_point2d<double>;
 using discrete_point2d = basic_point2d<int>;
 
+template<typename T>
+std::ostream& operator<<(std::ostream& out, const std::vector<T>& vec)
+{
+    out << "[";
+    for(const auto& elem: vec) {
+        out << elem << " ";
+    }
+    out << "]";
+    return out;
+}
+
+class random_base
+{
+protected:
+    static inline std::random_device dev_{};
+    static inline std::mt19937 gen_{dev_()};
+};
+
 template<typename ValueType>
-class random
+class random : private random_base
 {
     template<typename... Args>
     static constexpr bool match_any()
@@ -57,8 +84,6 @@ public:
     }
 
 private:
-    std::random_device dev_;
-    std::mt19937 gen_;
     std::conditional_t<std::is_floating_point_v<ValueType>,
             std::uniform_real_distribution<ValueType>,
             std::uniform_int_distribution<ValueType>> dist_;

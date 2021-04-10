@@ -1,3 +1,4 @@
+#include <chrono>
 #include <exception>
 #include <ostream>
 #include <optional>
@@ -9,6 +10,7 @@
 #include "logger.h"
 #include "math_utils.h"
 #include "png_image.h"
+#include "uwmf.h"
 
 #include "../external/cxxopts/include/cxxopts.hpp"
 
@@ -68,21 +70,18 @@ std::ostream& operator<<(std::ostream& out, const program_options& opts)
 {
     out << "\n";
     out << "    m = " << to_string(opts.m) << "\n";
-    switch(opts.m) {
-    case mode::SIMULATION:
+    if(opts.m == mode::SIMULATION) {
         out << "    r = " << opts.r << "\n";
-        // no break, sim mode is a superset of resoration mode
-    case mode::RESTORATION:
+    }
+
+    if(opts.m == mode::RESTORATION || opts.m == mode::SIMULATION) {
         out << "    k = " << opts.k << "\n";
         out << "    p = " << opts.p << "\n";
         out << "    w = " << opts.w << "\n";
-        break;
-    case mode::CORRUPTION:
+    }
+
+    if(opts.m == mode::CORRUPTION || opts.m == mode::SIMULATION) {
         out << "    d = " << opts.d << "\n";
-        break;
-    default:
-        ASSERT(false, "invalid operation");
-        break;
     }
 
     out << "    i = " << opts.i << "\n";
@@ -96,9 +95,10 @@ std::ostream& operator<<(std::ostream& out, const program_options& opts)
 
 constexpr const char* help()
 {
-    return "[-m=<r>] -i=<...> -w=<...> [-k=<...>] [-p=<...>] [-o=<...>]\n  "
-            "uwmf -m=<c> -i=<...> -d=<...> [-o=<...>]\n  "
-            "uwmf -m=<s> -i=<...> -w=<...> [-k=<...>] [-p=<...>] [-r=<...>]";
+    return "uwmf [-m r] -i <...> -w <...> [-k <...>] [-p <...>] [-o <...>]\n  "
+            "uwmf -m c -i <...> -d <...> [-o <...>]\n  "
+            "uwmf -m s -i <...> -w <...> -d <...> [-k <...>] [-p <...>]"
+                "[-r <...>]";
 
 }
 
@@ -153,7 +153,8 @@ std::optional<program_options> extract_program_options(
         opts.k = results["k"].as<int>();
         opts.p = results["p"].as<int>();
     }
-    else if(*m == mode::CORRUPTION) {
+
+    if(*m == mode::CORRUPTION || *m == mode::SIMULATION) {
         if(results["d"].count() == 0) {
             LOGE() << "missing option d";
             return std::nullopt;
@@ -169,7 +170,7 @@ std::optional<program_options> extract_program_options(
 
 int main(int argc, char** argv)
 {
-    uwmf::logger::filter() = uwmf::logger::log_level::VERBOSE;
+    uwmf::logger::filter() = uwmf::logger::log_level::INFO;
 
     cxxopts::Options opts("uwmf");
     opts.custom_help(help());
@@ -207,7 +208,7 @@ int main(int argc, char** argv)
             (
                     "r,repeat",
                     "Metrics calculation repeat counter",
-                    cxxopts::value<int>()
+                    cxxopts::value<int>()->default_value("1")
             )
             (
                     "i,input",
@@ -241,33 +242,52 @@ int main(int argc, char** argv)
     }
     catch(const std::exception& e) {
         LOGE() << e.what();
+        return -1;
     }
 
-    LOGI() << "running UWMF with" << optvals;
+    LOGD() << "running UWMF with" << optvals;
+
+    uwmf::monochrome_png_image png = *uwmf::read_png_image(optvals.i);
+    uwmf::monochrome_image input_image(png.buffer, png.width, png.height);
+
     if(optvals.m == mode::CORRUPTION) {
-        auto png = *uwmf::read_png_image(optvals.i);
-        uwmf::monochrome_image image(png.buffer, png.width, png.height);
-        auto corrupt_image = fvin(image, optvals.d);
+        auto corrupt_image = fvin(input_image, optvals.d);
         uwmf::write_png_image(corrupt_image.data(),
                 corrupt_image.width(), corrupt_image.height(), optvals.o);
     }
-
-    auto weights = uwmf::gen_minkowski_weights(1, 1);
-
-    for(auto weight: weights) {
-        LOGD() << weight;
+    else if(optvals.m == mode::RESTORATION) {
+        auto restored_image = uwmf::uwmf(input_image,
+                uwmf::naive_noise_detector, {optvals.w, optvals.p, optvals.k});
+        uwmf::write_png_image(restored_image.data(),
+                restored_image.width(), restored_image.height(), optvals.o);
     }
+    else {
+        double psnr_sum = 0;
+        double ssim_sum = 0;
+        double ief_sum = 0;
+        long int time_sum = 0;
 
-    int k = 4;
-    std::transform(weights.begin(), weights.end(), weights.begin(),
-            [k] (double weight)
-            {
-                int exp = uwmf::is_zero(weight) ? 1 : k;
-                return std::pow(weight, exp);
-            });
+        for(int i = 0; i < optvals.r; i++) {
+            auto corrupt_image = fvin(input_image, optvals.d);
 
-    for(auto weight: weights) {
-        LOGD() << weight;
+            auto t1 = std::chrono::high_resolution_clock::now();
+            auto restored_image = uwmf::uwmf(corrupt_image,
+                    uwmf::naive_noise_detector,
+                    {optvals.w, optvals.p, optvals.k});
+            auto t2 = std::chrono::high_resolution_clock::now();
+
+            psnr_sum += uwmf::psnr(input_image, restored_image);
+            ssim_sum += uwmf::ssim(input_image, restored_image);
+            ief_sum += uwmf::ief(input_image, restored_image, corrupt_image);
+            time_sum += std::chrono::duration_cast<
+                    std::chrono::milliseconds>(t2 - t1).count();
+        }
+
+        LOGI() << "corruption density    : " << optvals.d;
+        LOGI() << "average psnr          : " << psnr_sum / optvals.r;
+        LOGI() << "average ssim          : " << ssim_sum / optvals.r;
+        LOGI() << "average ief           : " << ief_sum / optvals.r;
+        LOGI() << "average cpu time (ms) : " << time_sum / optvals.r;
     }
 
     return 0;

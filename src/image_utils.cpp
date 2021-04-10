@@ -1,10 +1,10 @@
 #include "image_utils.h"
 
+#include "image.h"
 #include "math_utils.h"
 #include "utils.h"
 
 #include <cmath>
-#include <limits>
 
 namespace uwmf
 {
@@ -17,9 +17,9 @@ double psnr(const monochrome_image& original, const monochrome_image& restored)
 }
 
 double ief(const monochrome_image& original, const monochrome_image& restored,
-        const monochrome_image& noisy)
+        const monochrome_image& corrupted)
 {
-    return se(noisy, original) / se(restored, original);
+    return se(corrupted, original) / se(restored, original);
 }
 
 double ssim(const monochrome_image& original, const monochrome_image& restored)
@@ -34,10 +34,10 @@ double ssim(const monochrome_image& original, const monochrome_image& restored)
     const double mr = mean(restored);
     const double vo = variance(original, mo);
     const double vr = variance(restored, mr);
-    const double covar = covariance(original, vo, restored, vr);
+    const double covar = covariance(original, mo, restored, mr);
 
     return ((2 * mo * mr + c1) * (2 * covar + c2))
-            / ((mo * mo + mr * mr + c1) * (vo * vo + vr * vr + c2));
+            / ((mo * mo + mr * mr + c1) * (vo + vr + c2));
 }
 
 monochrome_image fvin(monochrome_image original, const double density)
