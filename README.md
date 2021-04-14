@@ -1,5 +1,5 @@
 ### Unbiased Weighted Mean Filter
-This project implements the [impulse noise](https://en.wikipedia.org/wiki/Salt-and-pepper_noise) (also known as salt-and-papper noise) removal algorithm published in paper entitled *A weighted mean filter with spatial-bias elimination for impulse noise removal* (UWMF, [see here](https://doi.org/10.1016/j.dsp.2015.08.012)). UWMF is based on another paper entitled *Interpolation-based impulse noise removal* (IBINR, [see here](https://doi.org/10.1049/iet-ipr.2013.0146)). IBINR basically interpolates the corrupted pixel using inverse Euclidean Distance. UWMF recalculates the weights (based on inverse Manhattan Distance) according to the spatial distribution of corrupted pixels, effectively yielding a more spatially-balanced weight contribution.
+This project implements the [impulse noise](https://en.wikipedia.org/wiki/Salt-and-pepper_noise) (also known as salt-and-pepper noise) removal algorithm published in paper entitled *A weighted mean filter with spatial-bias elimination for impulse noise removal* (UWMF, [see here](https://doi.org/10.1016/j.dsp.2015.08.012)). UWMF is based on another paper entitled *Interpolation-based impulse noise removal* (IBINR, [see here](https://doi.org/10.1049/iet-ipr.2013.0146)). IBINR basically interpolates the corrupted pixel using inverse Euclidean Distance. UWMF recalculates the weights (based on inverse Manhattan Distance) according to the spatial distribution of corrupted pixels, effectively yielding a more spatially-balanced weight contribution.
 
 ### How to Compile
 ```
@@ -22,7 +22,7 @@ Suggested Filtering Window Sizes:
 | 50 <= p < 70       | 3                     |
 | 70 <= p < 85       | 4                     |
 | 85 <= p < 90       | 5                     |
-| 90 >=              | 6                     |
+| 90 >= p            | 6                     |
 
 
 where _p_ is the corruption density. Also note that edge length of a filtering window with size 1 is 3 (2 * _wsize_ + 1). This ensures an odd edge length.
